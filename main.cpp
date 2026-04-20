@@ -23,20 +23,14 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
 
 		gameScene->Update();
 
-		imguiManager->End();
-
-		// 描画開始
+			// 描画開始
 		dxCommon->PreDraw();
 
 		gameScene->Draw();
 
-		AxisIndicator::GetInstance()->Draw();
-
-		imguiManager->Draw();
-
-
 		dxCommon->PostDraw();
 	}
+
 
 	delete gameScene;
 
