@@ -10,7 +10,7 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
 	gameScene->Initialize();
 	DirectXCommon* dxCommon = DirectXCommon::GetInstance();
 	while (true) {
-		if (!KamataEngine::Update()) {
+		if (KamataEngine::Update()) {
 			break; 
 		}
 		gameScene->Update();
