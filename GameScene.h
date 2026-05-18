@@ -1,7 +1,7 @@
 #pragma once
 #include "KamataEngine.h"
 #include "Skydome.h"
-
+#include "MapChipField.h"
 #include <vector>
 
 class GameScene {
@@ -14,6 +14,9 @@ public:
 	void Update();
 
 	void Draw();
+
+	void GenerateBlocks();
+
 	std::vector<std::vector<KamataEngine::WorldTransform*>> worldTransformBlocks_;
 
 private:
@@ -24,5 +27,6 @@ private:
 	uint32_t textureHandle_ = 0;
 	KamataEngine::Camera camera_;
 	Skydome* skydome_=nullptr;
+	MapChipField* mapChipField_;
 	
 };
