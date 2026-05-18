@@ -13,6 +13,8 @@ void GameScene::Initialize() {
 	model_ = Model::Create();
 	modelBlock_ = Model::Create();
 	camera_.Initialize();
+	skydome_ = new Skydome();
+	skydome_->Initialize();
 
 	
 	for (std::vector<WorldTransform*>& row : worldTransformBlocks_) {
@@ -60,6 +62,7 @@ GameScene::~GameScene() {
 	delete model_;
 	delete modelBlock_;
 	delete debugCamera_;
+	delete skydome_;
 }
 
 void GameScene::Update() {
@@ -87,11 +90,20 @@ void GameScene::Update() {
 		} else {
 			camera_.UpdateMatrix();
 		}
+	    skydome_->Update();
 	
 }
 	void GameScene::Draw() {
 	Model::PreDraw();
+	    skydome_->Draw(camera_);
 
+	    for (std::vector<WorldTransform*>& worldTransformBlockLine : worldTransformBlocks_) {
+		    for (WorldTransform* worldTransformBlock : worldTransformBlockLine) {
+			    if (!worldTransformBlock)
+				    continue;
+			    modelBlock_->Draw(*worldTransformBlock, camera_, textureHandle_);
+		    }
+	    }
 
 	for (std::vector<WorldTransform*>& worldTransformBlockLine : worldTransformBlocks_) {
 		for (WorldTransform* worldTransformBlock : worldTransformBlockLine) {

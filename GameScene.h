@@ -1,5 +1,6 @@
 #pragma once
 #include "KamataEngine.h"
+#include "Skydome.h"
 
 #include <vector>
 
@@ -22,6 +23,6 @@ private:
 	KamataEngine::Model* modelBlock_ = nullptr; 
 	uint32_t textureHandle_ = 0;
 	KamataEngine::Camera camera_;
-	
+	Skydome* skydome_=nullptr;
 	
 };
