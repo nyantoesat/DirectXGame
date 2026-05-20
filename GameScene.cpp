@@ -1,25 +1,31 @@
 #include "GameScene.h"
-#include "MathUtility.h"
-#include <cmath>
 #include "MapChipField.h"
+#include "MathUtility.h"
+#include "Player.h"
+#include <cmath>
 
 using namespace KamataEngine;
 
-
 void GameScene::Initialize() {
 
-	debugCamera_ = new DebugCamera(1280,720);
+	debugCamera_ = new DebugCamera(1280, 720);
 
-	textureHandle_ = TextureManager::Load("./Resources/cube/cube.jpg");
+	textureHandle_ = TextureManager::Load("./Resources/player/player.png");
+	blockTextureHandle_ = TextureManager::Load("./Resources/block/block.png");
+
 	model_ = Model::Create();
-	modelBlock_ = Model::Create();
+	modelBlock_ = Model::CreateFromOBJ("block", true);
+	modelPlayer_ = Model::CreateFromOBJ("player", true);
 	camera_.Initialize();
 	skydome_ = new Skydome();
 	skydome_->Initialize();
 	mapChipField_ = new MapChipField();
 	mapChipField_->LoadMapChipCsv("blocks.csv");
+	
+	Vector3 playerPosition = mapChipField_->GetMapChipPositionByIndex(1, 18);
+	player_ = new Player();
+	player_->Initialize(modelPlayer_, textureHandle_, &camera_, playerPosition);
 	GenerateBlocks();
-
 }
 
 void GameScene::GenerateBlocks() {
@@ -62,9 +68,12 @@ GameScene::~GameScene() {
 	delete debugCamera_;
 	delete skydome_;
 	delete mapChipField_;
+	delete modelPlayer_;
+	delete player_;
 }
 
 void GameScene::Update() {
+
 	debugCamera_->Update();
 	for (std::vector<WorldTransform*>& worldTransformBlockLine : worldTransformBlocks_) {
 		for (WorldTransform* worldTransformBlock : worldTransformBlockLine) {
@@ -82,37 +91,27 @@ void GameScene::Update() {
 		isDebugCameraActive_ = !isDebugCameraActive_;
 	}
 #endif
-		if (isDebugCameraActive_) {
-			camera_.matView = debugCamera_->GetCamera().matView;
-			camera_.matProjection = debugCamera_->GetCamera().matProjection;
-			camera_.TransferMatrix();
-		} else {
-			camera_.UpdateMatrix();
-		}
-	    skydome_->Update();
-	
+	if (isDebugCameraActive_) {
+		camera_.matView = debugCamera_->GetCamera().matView;
+		camera_.matProjection = debugCamera_->GetCamera().matProjection;
+		camera_.TransferMatrix();
+	} else {
+		camera_.UpdateMatrix();
+	}
+	skydome_->Update();
+	player_->Update();
 }
-	void GameScene::Draw() {
+void GameScene::Draw() {
 	Model::PreDraw();
-	    skydome_->Draw(camera_);
-
-	    for (std::vector<WorldTransform*>& worldTransformBlockLine : worldTransformBlocks_) {
-		    for (WorldTransform* worldTransformBlock : worldTransformBlockLine) {
-			    if (!worldTransformBlock)
-				    continue;
-			    modelBlock_->Draw(*worldTransformBlock, camera_, textureHandle_);
-		    }
-	    }
+	skydome_->Draw(camera_);
 
 	for (std::vector<WorldTransform*>& worldTransformBlockLine : worldTransformBlocks_) {
 		for (WorldTransform* worldTransformBlock : worldTransformBlockLine) {
-			
 			if (!worldTransformBlock)
 				continue;
-
-			modelBlock_->Draw(*worldTransformBlock, camera_, textureHandle_);
+			modelBlock_->Draw(*worldTransformBlock, camera_, blockTextureHandle_);
 		}
 	}
-
+	player_->Draw();
 	Model::PostDraw();
 }

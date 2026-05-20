@@ -1,13 +1,13 @@
 #pragma once
 #include "KamataEngine.h"
-#include "Skydome.h"
 #include "MapChipField.h"
+#include "Player.h"
+#include "Skydome.h"
 #include <vector>
 
 class GameScene {
 public:
 	~GameScene();
-
 
 	void Initialize();
 
@@ -23,10 +23,12 @@ private:
 	bool isDebugCameraActive_ = false;
 	KamataEngine::DebugCamera* debugCamera_ = nullptr;
 	KamataEngine::Model* model_ = nullptr;
-	KamataEngine::Model* modelBlock_ = nullptr; 
+	KamataEngine::Model* modelBlock_ = nullptr;
+	KamataEngine::Model* modelPlayer_ = nullptr;
+	Player* player_ = nullptr;
 	uint32_t textureHandle_ = 0;
+	uint32_t blockTextureHandle_ = 0;
 	KamataEngine::Camera camera_;
-	Skydome* skydome_=nullptr;
+	Skydome* skydome_ = nullptr;
 	MapChipField* mapChipField_;
-	
 };
