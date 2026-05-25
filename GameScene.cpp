@@ -21,11 +21,15 @@ void GameScene::Initialize() {
 	skydome_->Initialize();
 	mapChipField_ = new MapChipField();
 	mapChipField_->LoadMapChipCsv("blocks.csv");
-	
 	Vector3 playerPosition = mapChipField_->GetMapChipPositionByIndex(1, 18);
 	player_ = new Player();
 	player_->Initialize(modelPlayer_, textureHandle_, &camera_, playerPosition);
 	GenerateBlocks();
+
+	cameraController_ = new CameraController();
+	cameraController_->Initialize();
+	cameraController_->SetTarget(player_);
+	cameraController_->Reset();
 }
 
 void GameScene::GenerateBlocks() {
@@ -70,11 +74,13 @@ GameScene::~GameScene() {
 	delete mapChipField_;
 	delete modelPlayer_;
 	delete player_;
+	delete cameraController_;
 }
 
 void GameScene::Update() {
 
 	debugCamera_->Update();
+
 	for (std::vector<WorldTransform*>& worldTransformBlockLine : worldTransformBlocks_) {
 		for (WorldTransform* worldTransformBlock : worldTransformBlockLine) {
 
@@ -86,21 +92,28 @@ void GameScene::Update() {
 			worldTransformBlock->TransferMatrix();
 		}
 	}
+
+	skydome_->Update();
+	player_->Update();
+
 #ifdef _DEBUG
 	if (Input::GetInstance()->TriggerKey(DIK_SPACE)) {
 		isDebugCameraActive_ = !isDebugCameraActive_;
 	}
 #endif
+
 	if (isDebugCameraActive_) {
 		camera_.matView = debugCamera_->GetCamera().matView;
 		camera_.matProjection = debugCamera_->GetCamera().matProjection;
 		camera_.TransferMatrix();
 	} else {
-		camera_.UpdateMatrix();
+		cameraController_->Update();
+		camera_.matView = cameraController_->GetCamera().matView;
+		camera_.matProjection = cameraController_->GetCamera().matProjection;
+		camera_.TransferMatrix();
 	}
-	skydome_->Update();
-	player_->Update();
 }
+
 void GameScene::Draw() {
 	Model::PreDraw();
 	skydome_->Draw(camera_);

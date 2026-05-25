@@ -1,4 +1,5 @@
 #pragma once
+#include "CameraController.h"
 #include "KamataEngine.h"
 #include "MapChipField.h"
 #include "Player.h"
@@ -30,5 +31,6 @@ private:
 	uint32_t blockTextureHandle_ = 0;
 	KamataEngine::Camera camera_;
 	Skydome* skydome_ = nullptr;
-	MapChipField* mapChipField_;
+	MapChipField* mapChipField_ = nullptr;
+	CameraController* cameraController_ = nullptr;
 };
