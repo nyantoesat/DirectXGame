@@ -123,11 +123,11 @@ void Player::CheckMapCollisionUp(CollisionMapInfo& info) {
 	}
 }
 
-void Player::CheckMapCollisionDown(CollisionMapInfo& info) {}
+void Player::CheckMapCollisionDown(CollisionMapInfo&) {}
 
-void Player::CheckMapCollisionRight(CollisionMapInfo& info) {}
+void Player::CheckMapCollisionRight(CollisionMapInfo&) {}
 
-void Player::CheckMapCollisionLeft(CollisionMapInfo& info) {}
+void Player::CheckMapCollisionLeft(CollisionMapInfo&) {}
 
 Vector3 Player::CornerPosition(const Vector3& center, Corner corner) {
 	Vector3 offsetTable[kNumCorner] = {
