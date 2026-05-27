@@ -2,6 +2,7 @@
 #include "MapChipField.h"
 #include "MathUtility.h"
 #include <algorithm>
+#include <array>
 #include <cassert>
 #include <cmath>
 #include <numbers>
@@ -21,8 +22,7 @@ void Player::Initialize(Model* model, uint32_t textureHandle, Camera* camera, co
 	worldTransform_.rotation_.y = std::numbers::pi_v<float> / 2.0f;
 }
 
-void Player::Update() {
-
+void Player::InputMove() {
 	if (onGround_) {
 
 		if (Input::GetInstance()->PushKey(DIK_RIGHT) || Input::GetInstance()->PushKey(DIK_LEFT)) {
@@ -79,6 +79,100 @@ void Player::Update() {
 		velocity_.y -= kGravityAcceleration;
 		velocity_.y = (std::max)(velocity_.y, -kLimitFallSpeed);
 	}
+}
+
+void Player::CheckMapCollision(CollisionMapInfo& info) {
+	CheckMapCollisionUp(info);
+	CheckMapCollisionDown(info);
+	CheckMapCollisionRight(info);
+	CheckMapCollisionLeft(info);
+}
+
+void Player::CheckMapCollisionUp(CollisionMapInfo& info) {
+	if (info.move.y <= 0) {
+		return;
+	}
+
+	std::array<Vector3, kNumCorner> positionsNew;
+
+	for (uint32_t i = 0; i < positionsNew.size(); ++i) {
+		positionsNew[i] = CornerPosition(worldTransform_.translation_ + info.move, static_cast<Corner>(i));
+	}
+
+	MapChipType mapChipType;
+	bool hit = false;
+
+	MapChipField::IndexSet indexSet;
+	indexSet = mapChipField_->GetMapChipIndexSetByPosition(positionsNew[kLeftTop]);
+	mapChipType = mapChipField_->GetMapChipTypeByIndex(indexSet.xIndex, indexSet.yIndex);
+	if (mapChipType == MapChipType::kBlock) {
+		hit = true;
+	}
+
+	indexSet = mapChipField_->GetMapChipIndexSetByPosition(positionsNew[kRightTop]);
+	mapChipType = mapChipField_->GetMapChipTypeByIndex(indexSet.xIndex, indexSet.yIndex);
+	if (mapChipType == MapChipType::kBlock) {
+		hit = true;
+	}
+
+	if (hit) {
+		indexSet = mapChipField_->GetMapChipIndexSetByPosition(worldTransform_.translation_ + info.move + Vector3(0, kHeight / 2.0f, 0));
+		MapChipField::Rect rect = mapChipField_->GetRectByIndex(indexSet.xIndex, indexSet.yIndex);
+		info.move.y = (std::max)(0.0f, rect.bottom - worldTransform_.translation_.y - (kHeight / 2.0f + kBlank));
+		info.ceiling = true;
+	}
+}
+
+void Player::CheckMapCollisionDown(CollisionMapInfo& info) {}
+
+void Player::CheckMapCollisionRight(CollisionMapInfo& info) {}
+
+void Player::CheckMapCollisionLeft(CollisionMapInfo& info) {}
+
+Vector3 Player::CornerPosition(const Vector3& center, Corner corner) {
+	Vector3 offsetTable[kNumCorner] = {
+	    {+kWidth / 2.0f, -kHeight / 2.0f, 0.0f},
+	    {-kWidth / 2.0f, -kHeight / 2.0f, 0.0f},
+	    {+kWidth / 2.0f, +kHeight / 2.0f, 0.0f},
+	    {-kWidth / 2.0f, +kHeight / 2.0f, 0.0f},
+	};
+
+	return center + offsetTable[static_cast<uint32_t>(corner)];
+}
+
+void Player::ReflectCollisionResult(const CollisionMapInfo& info) { worldTransform_.translation_ += info.move; }
+
+void Player::HandleCeilingCollision(const CollisionMapInfo& info) {
+	if (info.ceiling) {
+		DebugText::GetInstance()->ConsolePrintf("hit ceiling\n");
+		velocity_.y = 0;
+	}
+}
+
+void Player::Update() {
+
+	InputMove();
+
+	CollisionMapInfo collisionMapInfo;
+	collisionMapInfo.move = velocity_;
+
+	CheckMapCollision(collisionMapInfo);
+
+	ReflectCollisionResult(collisionMapInfo);
+
+	HandleCeilingCollision(collisionMapInfo);
+
+	if (onGround_) {
+		if (velocity_.y > 0.0f) {
+			onGround_ = false;
+		}
+	} else {
+		if (velocity_.y < 0.0f && worldTransform_.translation_.y <= 1.0f) {
+			worldTransform_.translation_.y = 1.0f;
+			velocity_.y = 0.0f;
+			onGround_ = true;
+		}
+	}
 
 	if (turnTimer_ > 0.0f) {
 		turnTimer_ -= 1.0f / 60.0f;
@@ -94,22 +188,6 @@ void Player::Update() {
 
 		float t = 1.0f - (turnTimer_ / kTimeTurn);
 		worldTransform_.rotation_.y = std::lerp(turnFirstRotationY_, destinationRotationY, t);
-	}
-
-	worldTransform_.translation_.x += velocity_.x;
-	worldTransform_.translation_.y += velocity_.y;
-	worldTransform_.translation_.z += velocity_.z;
-
-	if (onGround_) {
-		if (velocity_.y > 0.0f) {
-			onGround_ = false;
-		}
-	} else {
-		if (velocity_.y < 0.0f && worldTransform_.translation_.y <= 1.0f) {
-			worldTransform_.translation_.y = 1.0f;
-			velocity_.y = 0.0f;
-			onGround_ = true;
-		}
 	}
 
 	worldTransform_.matWorld_ = MakeAffineMatrix(worldTransform_.scale_, worldTransform_.rotation_, worldTransform_.translation_);

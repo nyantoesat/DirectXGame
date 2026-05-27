@@ -24,6 +24,7 @@ void GameScene::Initialize() {
 	Vector3 playerPosition = mapChipField_->GetMapChipPositionByIndex(1, 18);
 	player_ = new Player();
 	player_->Initialize(modelPlayer_, textureHandle_, &camera_, playerPosition);
+	player_->SetMapChipField(mapChipField_);
 	GenerateBlocks();
 
 	cameraController_ = new CameraController();
