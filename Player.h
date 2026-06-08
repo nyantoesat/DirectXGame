@@ -72,9 +72,9 @@ private:
 
 	static inline const float kTimeTurn = 0.3f;
 
-	static inline const float kGravityAcceleration = 0.05f;
-	static inline const float kLimitFallSpeed = 0.5f;
-	static inline const float kJumpAcceleration = 0.5f;
+	static inline const float kGravityAcceleration = 0.03f;
+	static inline const float kLimitFallSpeed = 0.3f;
+	static inline const float kJumpAcceleration = 0.7f;
 
 	static inline const float kWidth = 0.8f;
 	static inline const float kHeight = 0.8f;
