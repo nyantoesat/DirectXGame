@@ -1,4 +1,5 @@
 #include "GameScene.h"
+#include "Enemy.h"
 #include "MapChipField.h"
 #include "MathUtility.h"
 #include "Player.h"
@@ -16,6 +17,7 @@ void GameScene::Initialize() {
 	model_ = Model::Create();
 	modelBlock_ = Model::CreateFromOBJ("block", true);
 	modelPlayer_ = Model::CreateFromOBJ("player", true);
+	modelEnemy_ = Model::CreateFromOBJ("enemy", true);
 	camera_.Initialize();
 	skydome_ = new Skydome();
 	skydome_->Initialize();
@@ -26,6 +28,12 @@ void GameScene::Initialize() {
 	player_->Initialize(modelPlayer_, textureHandle_, &camera_, playerPosition);
 	player_->SetMapChipField(mapChipField_);
 	GenerateBlocks();
+
+	enemyTextureHandle_ = TextureManager::Load("./Resources/enemy/enemy.png");
+	Vector3 enemyPosition = mapChipField_->GetMapChipPositionByIndex(5, 18);
+	enemy_ = new Enemy();
+	enemy_->Initialize(modelEnemy_, enemyTextureHandle_, &camera_, enemyPosition);
+	enemy_->setMapChipField(mapChipField_);
 
 	cameraController_ = new CameraController();
 	cameraController_->Initialize();
@@ -75,6 +83,8 @@ GameScene::~GameScene() {
 	delete mapChipField_;
 	delete modelPlayer_;
 	delete player_;
+	delete modelEnemy_;
+	delete enemy_;
 	delete cameraController_;
 }
 
@@ -96,6 +106,7 @@ void GameScene::Update() {
 
 	skydome_->Update();
 	player_->Update();
+	enemy_->update();
 
 #ifdef _DEBUG
 	if (Input::GetInstance()->TriggerKey(DIK_SPACE)) {
@@ -127,5 +138,6 @@ void GameScene::Draw() {
 		}
 	}
 	player_->Draw();
+	enemy_->draw();
 	Model::PostDraw();
 }
