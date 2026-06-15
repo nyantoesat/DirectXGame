@@ -24,7 +24,7 @@ private:
 	struct CollisionMapInfo {
 		bool ceiling = false;
 		bool landing = false;
-		bool wall = false;
+		bool hitWall = false;
 		KamataEngine::Vector3 move = {};
 	};
 
@@ -49,6 +49,9 @@ private:
 
 	void ReflectCollisionResult(const CollisionMapInfo& info);
 	void HandleCeilingCollision(const CollisionMapInfo& info);
+	void HandleLandingCollision(const CollisionMapInfo& info);
+	void HandleWallCollision(const CollisionMapInfo& info);
+	void UpdateOnGroundState(const CollisionMapInfo& info);
 
 	KamataEngine::Model* model_ = nullptr;
 	uint32_t textureHandle_ = 0u;
@@ -75,6 +78,10 @@ private:
 	static inline const float kGravityAcceleration = 0.05f;
 	static inline const float kLimitFallSpeed = 0.5f;
 	static inline const float kJumpAcceleration = 0.5f;
+
+	static inline const float kAttenuationLanding = 0.1f;
+	static inline const float kAttenuationWall = 0.1f;
+	static inline const float kGroundSearchOffset = 0.06f;
 
 	static inline const float kWidth = 0.8f;
 	static inline const float kHeight = 0.8f;
