@@ -1,7 +1,10 @@
 #pragma once
+#include "AABB.h"
 #include "KamataEngine.h"
 #include "MapChipField.h"
 using namespace KamataEngine;
+
+class Player;
 
 class Enemy {
 public:
@@ -13,6 +16,13 @@ public:
 	void update();
 	void draw();
 	void setMapChipField(MapChipField* mapChipField) { mapChipField_ = mapChipField; }
+
+	// ワールド座標を取得
+	Vector3 GetWorldPosition();
+	// AABBを取得
+	AABB GetAABB();
+	// 衝突応答
+	void OnCollision(const Player* player);
 
 private:
 	// Collision corners

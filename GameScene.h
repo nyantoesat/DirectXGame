@@ -1,10 +1,13 @@
 #pragma once
+#include "AABB.h"
 #include "CameraController.h"
 #include "Enemy.h"
 #include "KamataEngine.h"
 #include "MapChipField.h"
+#include "MathUtility.h"
 #include "Player.h"
 #include "Skydome.h"
+#include <list>
 #include <vector>
 
 class GameScene {
@@ -18,6 +21,7 @@ public:
 	void Draw();
 
 	void GenerateBlocks();
+	void CheckAllCollisions();
 
 	std::vector<std::vector<KamataEngine::WorldTransform*>> worldTransformBlocks_;
 
@@ -29,7 +33,7 @@ private:
 	KamataEngine::Model* modelPlayer_ = nullptr;
 	KamataEngine::Model* modelEnemy_ = nullptr;
 	Player* player_ = nullptr;
-	Enemy* enemy_ = nullptr;
+	std::list<Enemy*> enemies_;
 	uint32_t textureHandle_ = 0;
 	uint32_t blockTextureHandle_ = 0;
 	uint32_t enemyTextureHandle_ = 0;

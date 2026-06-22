@@ -30,10 +30,15 @@ void GameScene::Initialize() {
 	GenerateBlocks();
 
 	enemyTextureHandle_ = TextureManager::Load("./Resources/enemy/enemy.png");
-	Vector3 enemyPosition = mapChipField_->GetMapChipPositionByIndex(5, 18);
-	enemy_ = new Enemy();
-	enemy_->Initialize(modelEnemy_, enemyTextureHandle_, &camera_, enemyPosition);
-	enemy_->setMapChipField(mapChipField_);
+
+	// 敵の生成（複数体）
+	for (int32_t i = 0; i < 3; ++i) {
+		Enemy* newEnemy = new Enemy();
+		Vector3 enemyPosition = mapChipField_->GetMapChipPositionByIndex(5 + i * 5, 18);
+		newEnemy->Initialize(modelEnemy_, enemyTextureHandle_, &camera_, enemyPosition);
+		newEnemy->setMapChipField(mapChipField_);
+		enemies_.push_back(newEnemy);
+	}
 
 	cameraController_ = new CameraController();
 	cameraController_->Initialize();
@@ -84,7 +89,10 @@ GameScene::~GameScene() {
 	delete modelPlayer_;
 	delete player_;
 	delete modelEnemy_;
-	delete enemy_;
+	for (Enemy* enemy : enemies_) {
+		delete enemy;
+	}
+	enemies_.clear();
 	delete cameraController_;
 }
 
@@ -106,7 +114,12 @@ void GameScene::Update() {
 
 	skydome_->Update();
 	player_->Update();
-	enemy_->update();
+	for (Enemy* enemy : enemies_) {
+		enemy->update();
+	}
+
+	// 全ての当たり判定を行う（各オブジェクトの行列計算が終わった後に実行）
+	CheckAllCollisions();
 
 #ifdef _DEBUG
 	if (Input::GetInstance()->TriggerKey(DIK_SPACE)) {
@@ -138,6 +151,32 @@ void GameScene::Draw() {
 		}
 	}
 	player_->Draw();
-	enemy_->draw();
+	for (Enemy* enemy : enemies_) {
+		enemy->draw();
+	}
 	Model::PostDraw();
+}
+
+void GameScene::CheckAllCollisions() {
+#pragma region 自キャラと敵キャラの当たり判定
+	// 判定対象1と2の座標
+	AABB aabb1, aabb2;
+
+	// 自キャラの座標
+	aabb1 = player_->GetAABB();
+
+	// 自キャラと敵全ての当たり判定
+	for (Enemy* enemy : enemies_) {
+		// 敵の座標
+		aabb2 = enemy->GetAABB();
+
+		// AABB同士の交差判定
+		if (IsCollision(aabb1, aabb2)) {
+			// 自キャラの衝突時コールバックを呼び出す
+			player_->OnCollision(enemy);
+			// 敵弾の衝突時コールバックを呼び出す
+			enemy->OnCollision(player_);
+		}
+	}
+#pragma endregion
 }

@@ -1,7 +1,9 @@
 #pragma once
+#include "AABB.h"
 #include "KamataEngine.h"
 
 class MapChipField;
+class Enemy;
 
 class Player {
 public:
@@ -15,10 +17,15 @@ public:
 	void Draw();
 
 	const KamataEngine::WorldTransform& GetWorldTransform() const { return worldTransform_; }
-
 	const KamataEngine::Vector3& GetVelocity() const { return velocity_; }
-
 	void SetMapChipField(MapChipField* mapChipField) { mapChipField_ = mapChipField; }
+
+	// ワールド座標を取得
+	KamataEngine::Vector3 GetWorldPosition();
+	// AABBを取得
+	AABB GetAABB();
+	// 衝突応答
+	void OnCollision(const Enemy* enemy);
 
 private:
 	struct CollisionMapInfo {
