@@ -1,6 +1,7 @@
 #pragma once
 #include "AABB.h"
 #include "CameraController.h"
+#include "DeathParticles.h"
 #include "Enemy.h"
 #include "KamataEngine.h"
 #include "MapChipField.h"
@@ -34,6 +35,8 @@ private:
 	KamataEngine::Model* modelEnemy_ = nullptr;
 	Player* player_ = nullptr;
 	std::list<Enemy*> enemies_;
+	DeathParticles* deathParticles_ = nullptr;
+	KamataEngine::Model* modelDeathParticles_ = nullptr;
 	uint32_t textureHandle_ = 0;
 	uint32_t blockTextureHandle_ = 0;
 	uint32_t enemyTextureHandle_ = 0;

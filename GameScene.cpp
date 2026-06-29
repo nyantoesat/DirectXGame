@@ -1,4 +1,5 @@
 #include "GameScene.h"
+#include "DeathParticles.h"
 #include "Enemy.h"
 #include "MapChipField.h"
 #include "MathUtility.h"
@@ -44,6 +45,9 @@ void GameScene::Initialize() {
 	cameraController_->Initialize();
 	cameraController_->SetTarget(player_);
 	cameraController_->Reset();
+
+	// デスパーティクルのモデルを読み込み（生成はプレイヤー死亡時）
+	modelDeathParticles_ = Model::CreateFromOBJ("deathParticle", true);
 }
 
 void GameScene::GenerateBlocks() {
@@ -94,6 +98,8 @@ GameScene::~GameScene() {
 	}
 	enemies_.clear();
 	delete cameraController_;
+	delete deathParticles_;
+	delete modelDeathParticles_;
 }
 
 void GameScene::Update() {
@@ -116,6 +122,16 @@ void GameScene::Update() {
 	player_->Update();
 	for (Enemy* enemy : enemies_) {
 		enemy->update();
+	}
+
+	// デスパーティクルの更新
+	if (deathParticles_) {
+		deathParticles_->Update();
+		// 終了したら削除
+		if (deathParticles_->IsFinished()) {
+			delete deathParticles_;
+			deathParticles_ = nullptr;
+		}
 	}
 
 	// 全ての当たり判定を行う（各オブジェクトの行列計算が終わった後に実行）
@@ -154,6 +170,10 @@ void GameScene::Draw() {
 	for (Enemy* enemy : enemies_) {
 		enemy->draw();
 	}
+	// デスパーティクルの描画
+	if (deathParticles_) {
+		deathParticles_->Draw();
+	}
 	Model::PostDraw();
 }
 
@@ -176,6 +196,12 @@ void GameScene::CheckAllCollisions() {
 			player_->OnCollision(enemy);
 			// 敵弾の衝突時コールバックを呼び出す
 			enemy->OnCollision(player_);
+
+			// デスパーティクルをプレイヤーの位置に生成（まだ生成されていない場合）
+			if (!deathParticles_) {
+				deathParticles_ = new DeathParticles();
+				deathParticles_->Initialize(modelDeathParticles_, &camera_, player_->GetWorldPosition());
+			}
 		}
 	}
 #pragma endregion
