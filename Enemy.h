@@ -9,8 +9,8 @@ class Player;
 class Enemy {
 public:
 	float walkTimer_ = 0.0f;
-	static inline const float kWalkAnimationPeriod = 1.0f; // seconds per cycle
-	static inline const float kMaxRockAngle = 15.0f;       // degrees of rock
+	static inline const float kWalkAnimationPeriod = 1.0f;
+	static inline const float kMaxRockAngle = 15.0f;
 	Enemy();
 	void Initialize(KamataEngine::Model* model, uint32_t textureHandleEnemy, KamataEngine::Camera* camera, Vector3& position);
 	void update();

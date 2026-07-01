@@ -223,14 +223,13 @@ void Enemy::ApplyCollisionResult(const CollisionMapInfo& info) {
 		onGround_ = true;
 		velocity_.y = 0.0f;
 	}
-	// Hit wall — flip direction
 	if (info.isHitLeft) {
-		velocity_.x = +kWalkSpeed;           // was going left, now go right
-		worldTransform_.rotation_.y = +1.5f; // face right
+		velocity_.x = +kWalkSpeed;
+		worldTransform_.rotation_.y = +1.5f;
 	}
 	if (info.isHitRight) {
-		velocity_.x = -kWalkSpeed;           // was going right, now go left
-		worldTransform_.rotation_.y = -1.5f; // face left
+		velocity_.x = -kWalkSpeed;
+		worldTransform_.rotation_.y = -1.5f;
 	}
 }
 

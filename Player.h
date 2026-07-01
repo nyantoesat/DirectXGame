@@ -26,6 +26,8 @@ public:
 	AABB GetAABB();
 	// 衝突応答
 	void OnCollision(const Enemy* enemy);
+	// デスフラグのgetter
+	bool IsDead() const { return isDead_; }
 
 private:
 	struct CollisionMapInfo {
@@ -73,6 +75,9 @@ private:
 	float turnTimer_ = 0.0f;
 
 	bool onGround_ = true;
+
+	// デスフラグ
+	bool isDead_ = false;
 
 	MapChipField* mapChipField_ = nullptr;
 

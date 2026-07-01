@@ -356,7 +356,13 @@ void Player::Update() {
 	worldTransform_.TransferMatrix();
 }
 
-void Player::Draw() { model_->Draw(worldTransform_, *camera_, textureHandle_); }
+void Player::Draw() {
+	// 死亡中は描画しない
+	if (isDead_) {
+		return;
+	}
+	model_->Draw(worldTransform_, *camera_, textureHandle_);
+}
 
 Vector3 Player::GetWorldPosition() {
 	// ワールド座標を入れる変数
@@ -378,6 +384,6 @@ AABB Player::GetAABB() {
 
 void Player::OnCollision(const Enemy* enemy) {
 	(void)enemy;
-	// ジャンプ開始（仮処理）
-	velocity_ += Vector3(0, kJumpAcceleration, 0);
+	// デスフラグを立てる
+	isDead_ = true;
 }

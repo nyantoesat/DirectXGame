@@ -13,6 +13,12 @@
 
 class GameScene {
 public:
+	// ゲームのフェーズ（型）
+	enum class Phase {
+		kPlay,  // ゲームプレイ
+		kDeath, // デス演出
+	};
+
 	~GameScene();
 
 	void Initialize();
@@ -23,6 +29,12 @@ public:
 
 	void GenerateBlocks();
 	void CheckAllCollisions();
+	void ChangePhase();
+	void UpdatePlayPhase();
+	void UpdateDeathPhase();
+
+	// 終了フラグのgetter
+	bool IsFinished() const { return finished_; }
 
 	std::vector<std::vector<KamataEngine::WorldTransform*>> worldTransformBlocks_;
 
@@ -44,4 +56,8 @@ private:
 	Skydome* skydome_ = nullptr;
 	MapChipField* mapChipField_ = nullptr;
 	CameraController* cameraController_ = nullptr;
+	// ゲームの現在フェーズ（変数）
+	Phase phase_ = Phase::kPlay;
+	// 終了フラグ
+	bool finished_ = false;
 };
