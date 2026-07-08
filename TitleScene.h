@@ -1,8 +1,10 @@
 #pragma once
+#include "Fade.h"
 #include "KamataEngine.h"
 
 class TitleScene {
 public:
+	~TitleScene();
 	void Initialize();
 	void Update();
 	void Draw();
@@ -13,4 +15,7 @@ public:
 private:
 	// 終了フラグ
 	bool finished_ = false;
+
+	// フェード
+	Fade* fade_ = nullptr;
 };
