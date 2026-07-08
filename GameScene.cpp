@@ -185,12 +185,12 @@ void GameScene::UpdateDeathPhase() {
 	if (deathParticles_) {
 		deathParticles_->Update();
 		if (deathParticles_->IsFinished()) {
+			// 演出終了時にゲームシーンの終了フラグを立てる
+			finished_ = true;
 			delete deathParticles_;
 			deathParticles_ = nullptr;
 		}
 	}
-
-	
 }
 
 void GameScene::ChangePhase() {
@@ -208,7 +208,7 @@ void GameScene::ChangePhase() {
 		}
 		break;
 	case Phase::kDeath:
-		// デス演出フェーズ側には特に何も書かなくてよい
+		// 終了フラグはUpdateDeathPhase内で設定される
 		break;
 	}
 }
