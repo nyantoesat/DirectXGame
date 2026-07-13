@@ -16,6 +16,25 @@ private:
 	// 終了フラグ
 	bool finished_ = false;
 
+	// タイトルフォントモデル
+	KamataEngine::Model* modelTitleFont_ = nullptr;
+	KamataEngine::WorldTransform worldTransformTitleFont_;
+	uint32_t textureTitleFont_ = 0;
+
+	// フローティングアニメーション用タイマー
+	float floatTimer_ = 0.0f;
+	static inline const float kBaseY_ = 3.0f;
+	static inline const float kFloatAmplitude_ = 0.3f;
+	static inline const float kFloatSpeed_ = 2.0f;
+
+	// プレイヤーモデル
+	KamataEngine::Model* modelPlayer_ = nullptr;
+	KamataEngine::WorldTransform worldTransformPlayer_;
+	uint32_t texturePlayer_ = 0;
+
+	// カメラ
+	KamataEngine::Camera camera_;
+
 	// フェード
 	Fade* fade_ = nullptr;
 };

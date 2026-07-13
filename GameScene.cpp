@@ -109,6 +109,9 @@ void GameScene::Update() {
 
 	debugCamera_->Update();
 
+	// フェーズの切り替え（更新前に判定）
+	ChangePhase();
+
 	// フェーズごとの更新処理
 	switch (phase_) {
 	case Phase::kPlay:
@@ -118,9 +121,6 @@ void GameScene::Update() {
 		UpdateDeathPhase();
 		break;
 	}
-
-	// フェーズの切り替え
-	ChangePhase();
 
 #ifdef _DEBUG
 	if (Input::GetInstance()->TriggerKey(DIK_SPACE)) {
@@ -133,9 +133,12 @@ void GameScene::Update() {
 		camera_.matProjection = debugCamera_->GetCamera().matProjection;
 		camera_.TransferMatrix();
 	} else {
-		cameraController_->Update();
-		camera_.matView = cameraController_->GetCamera().matView;
-		camera_.matProjection = cameraController_->GetCamera().matProjection;
+		// kPlayのみカメラコントローラを使う
+		if (phase_ == Phase::kPlay) {
+			cameraController_->Update();
+			camera_.matView = cameraController_->GetCamera().matView;
+			camera_.matProjection = cameraController_->GetCamera().matProjection;
+		}
 		camera_.TransferMatrix();
 	}
 }
@@ -185,12 +188,12 @@ void GameScene::UpdateDeathPhase() {
 	if (deathParticles_) {
 		deathParticles_->Update();
 		if (deathParticles_->IsFinished()) {
+			// 演出終了時にゲームシーンの終了フラグを立てる
+			finished_ = true;
 			delete deathParticles_;
 			deathParticles_ = nullptr;
 		}
 	}
-
-	
 }
 
 void GameScene::ChangePhase() {
@@ -208,7 +211,7 @@ void GameScene::ChangePhase() {
 		}
 		break;
 	case Phase::kDeath:
-		// デス演出フェーズ側には特に何も書かなくてよい
+		// 終了フラグはUpdateDeathPhase内で設定される
 		break;
 	}
 }
