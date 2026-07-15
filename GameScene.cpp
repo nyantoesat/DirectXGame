@@ -119,7 +119,7 @@ void GameScene::Update() {
 		break;
 	}
 
-	// フェーズの切り替え
+	// フェーズの切り替え（更新後に判定）
 	ChangePhase();
 
 #ifdef _DEBUG
@@ -133,9 +133,12 @@ void GameScene::Update() {
 		camera_.matProjection = debugCamera_->GetCamera().matProjection;
 		camera_.TransferMatrix();
 	} else {
-		cameraController_->Update();
-		camera_.matView = cameraController_->GetCamera().matView;
-		camera_.matProjection = cameraController_->GetCamera().matProjection;
+		// kPlayのみカメラコントローラを使う
+		if (phase_ == Phase::kPlay) {
+			cameraController_->Update();
+			camera_.matView = cameraController_->GetCamera().matView;
+			camera_.matProjection = cameraController_->GetCamera().matProjection;
+		}
 		camera_.TransferMatrix();
 	}
 }
