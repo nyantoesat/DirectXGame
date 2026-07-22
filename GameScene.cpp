@@ -109,9 +109,6 @@ void GameScene::Update() {
 
 	debugCamera_->Update();
 
-	// フェーズの切り替え（更新前に判定）
-	ChangePhase();
-
 	// フェーズごとの更新処理
 	switch (phase_) {
 	case Phase::kPlay:
@@ -121,6 +118,9 @@ void GameScene::Update() {
 		UpdateDeathPhase();
 		break;
 	}
+
+	// フェーズの切り替え（更新後に判定）
+	ChangePhase();
 
 #ifdef _DEBUG
 	if (Input::GetInstance()->TriggerKey(DIK_SPACE)) {
