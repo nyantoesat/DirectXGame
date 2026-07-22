@@ -19,6 +19,7 @@ void GameScene::Initialize() {
 	model_ = Model::Create();
 	modelBlock_ = Model::CreateFromOBJ("block", true);
 	modelPlayer_ = Model::CreateFromOBJ("player", true);
+	modelPlayerAttack_ = Model::CreateFromOBJ("playerAttack", true);
 	modelEnemy_ = Model::CreateFromOBJ("enemy", true);
 	camera_.Initialize();
 	skydome_ = new Skydome();
@@ -27,7 +28,7 @@ void GameScene::Initialize() {
 	mapChipField_->LoadMapChipCsv("blocks.csv");
 	Vector3 playerPosition = mapChipField_->GetMapChipPositionByIndex(1, 18);
 	player_ = new Player();
-	player_->Initialize(modelPlayer_, textureHandle_, &camera_, playerPosition);
+	player_->Initialize(modelPlayer_, modelPlayerAttack_, textureHandle_, &camera_, playerPosition);
 	player_->SetMapChipField(mapChipField_);
 	GenerateBlocks();
 
@@ -101,6 +102,7 @@ GameScene::~GameScene() {
 	delete skydome_;
 	delete mapChipField_;
 	delete modelPlayer_;
+	delete modelPlayerAttack_;
 	delete player_;
 	delete modelEnemy_;
 	for (Enemy* enemy : enemies_) {

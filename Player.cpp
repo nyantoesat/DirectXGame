@@ -21,17 +21,21 @@ static float EaseIn(float start, float end, float t) {
 	return start + (end - start) * t;
 }
 
-void Player::Initialize(Model* model, uint32_t textureHandle, Camera* camera, const Vector3& position) {
+void Player::Initialize(Model* model, Model* modelAttack, uint32_t textureHandle, Camera* camera, const Vector3& position) {
 	assert(model);
 	assert(camera);
 
 	model_ = model;
+	modelAttack_ = modelAttack;
 	textureHandle_ = textureHandle;
 	camera_ = camera;
 
 	worldTransform_.Initialize();
 	worldTransform_.translation_ = position;
 	worldTransform_.rotation_.y = std::numbers::pi_v<float> / 2.0f;
+
+	// エフェクト用ワールドトランスフォームの初期化
+	worldTransformAttack_.Initialize();
 }
 
 void Player::InputMove() {
@@ -476,6 +480,13 @@ void Player::BehaviorAttackUpdate() {
 	HandleWallCollision(collisionMapInfo);
 	UpdateOnGroundState(collisionMapInfo);
 
+	// トランスフォームの値をコピー
+	worldTransformAttack_.translation_ = worldTransform_.translation_;
+	worldTransformAttack_.rotation_ = worldTransform_.rotation_;
+	worldTransformAttack_.scale_ = worldTransform_.scale_;
+	worldTransformAttack_.matWorld_ = MakeAffineMatrix(worldTransformAttack_.scale_, worldTransformAttack_.rotation_, worldTransformAttack_.translation_);
+	worldTransformAttack_.TransferMatrix();
+
 	// 予備動作カウンターを進める
 	attackParameter_++;
 }
@@ -486,6 +497,11 @@ void Player::Draw() {
 		return;
 	}
 	model_->Draw(worldTransform_, *camera_, textureHandle_);
+
+	// 攻撃中はエフェクトモデルも描画
+	if (behavior_ == Behavior::kAttack) {
+		modelAttack_->Draw(worldTransformAttack_, *camera_, textureHandle_);
+	}
 }
 
 Vector3 Player::GetWorldPosition() {

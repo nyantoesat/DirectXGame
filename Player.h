@@ -26,7 +26,7 @@ public:
 		余韻,
 	};
 
-	void Initialize(KamataEngine::Model* model, uint32_t textureHandle, KamataEngine::Camera* camera, const KamataEngine::Vector3& position);
+	void Initialize(KamataEngine::Model* model, KamataEngine::Model* modelAttack, uint32_t textureHandle, KamataEngine::Camera* camera, const KamataEngine::Vector3& position);
 	void Update();
 	void Draw();
 
@@ -84,6 +84,8 @@ private:
 	void BehaviorAttackUpdate();
 
 	KamataEngine::Model* model_ = nullptr;
+	KamataEngine::Model* modelAttack_ = nullptr;
+	KamataEngine::WorldTransform worldTransformAttack_;
 	uint32_t textureHandle_ = 0u;
 	KamataEngine::Camera* camera_ = nullptr;
 	KamataEngine::WorldTransform worldTransform_;
