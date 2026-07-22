@@ -12,6 +12,13 @@ public:
 		kLeft,
 	};
 
+	// 振るまい
+	enum class Behavior {
+		kRoot,    // 通常状態
+		kAttack,  // 攻撃中
+		kUnknown, // リクエストなし
+	};
+
 	void Initialize(KamataEngine::Model* model, uint32_t textureHandle, KamataEngine::Camera* camera, const KamataEngine::Vector3& position);
 	void Update();
 	void Draw();
@@ -42,7 +49,6 @@ private:
 		kLeftBottom,
 		kRightTop,
 		kLeftTop,
-
 		kNumCorner,
 	};
 
@@ -62,6 +68,14 @@ private:
 	void HandleWallCollision(const CollisionMapInfo& info);
 	void UpdateOnGroundState(const CollisionMapInfo& info);
 
+	// ビヘイビアごとの初期化
+	void BehaviorRootInitialize();
+	void BehaviorAttackInitialize();
+
+	// ビヘイビアごとの更新
+	void BehaviorRootUpdate();
+	void BehaviorAttackUpdate();
+
 	KamataEngine::Model* model_ = nullptr;
 	uint32_t textureHandle_ = 0u;
 	KamataEngine::Camera* camera_ = nullptr;
@@ -78,6 +92,14 @@ private:
 
 	// デスフラグ
 	bool isDead_ = false;
+
+	// 振るまい
+	Behavior behavior_ = Behavior::kRoot;
+	// 次の振るまいリクエスト
+	Behavior behaviorRequest_ = Behavior::kUnknown;
+
+	// 攻撃ギミックの経過時間カウンター
+	uint32_t attackParameter_ = 0;
 
 	MapChipField* mapChipField_ = nullptr;
 
@@ -98,4 +120,7 @@ private:
 	static inline const float kWidth = 0.8f;
 	static inline const float kHeight = 0.8f;
 	static inline const float kBlank = 0.04f;
+
+	// 攻撃時間
+	static inline const uint32_t kAttackTime = 60;
 };

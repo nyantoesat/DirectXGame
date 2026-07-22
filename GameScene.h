@@ -3,6 +3,7 @@
 #include "CameraController.h"
 #include "DeathParticles.h"
 #include "Enemy.h"
+#include "Fade.h"
 #include "KamataEngine.h"
 #include "MapChipField.h"
 #include "MathUtility.h"
@@ -60,4 +61,6 @@ private:
 	Phase phase_ = Phase::kPlay;
 	// 終了フラグ
 	bool finished_ = false;
+	// フェード
+	Fade* fade_ = nullptr;
 };

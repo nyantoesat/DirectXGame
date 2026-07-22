@@ -322,19 +322,34 @@ void Player::UpdateOnGroundState(const CollisionMapInfo& info) {
 
 void Player::Update() {
 
-	InputMove();
+	// ビヘイビア遷移（Update先頭に差し込む）
+	if (behaviorRequest_ != Behavior::kUnknown) {
+		// 振るまいを変更する
+		behavior_ = behaviorRequest_;
+		// 各振るまいごとの初期化を実行
+		switch (behavior_) {
+		case Behavior::kRoot:
+		default:
+			BehaviorRootInitialize();
+			break;
+		case Behavior::kAttack:
+			BehaviorAttackInitialize();
+			break;
+		}
+		// 振るまいリクエストをリセット
+		behaviorRequest_ = Behavior::kUnknown;
+	}
 
-	CollisionMapInfo collisionMapInfo;
-	collisionMapInfo.move = velocity_;
-
-	CheckMapCollision(collisionMapInfo);
-
-	ReflectCollisionResult(collisionMapInfo);
-
-	HandleCeilingCollision(collisionMapInfo);
-	HandleLandingCollision(collisionMapInfo);
-	HandleWallCollision(collisionMapInfo);
-	UpdateOnGroundState(collisionMapInfo);
+	// 現在のビヘイビアに応じた毎フレームの処理
+	switch (behavior_) {
+	case Behavior::kRoot:
+	default:
+		BehaviorRootUpdate();
+		break;
+	case Behavior::kAttack:
+		BehaviorAttackUpdate();
+		break;
+	}
 
 	if (turnTimer_ > 0.0f) {
 		turnTimer_ -= 1.0f / 60.0f;
@@ -354,6 +369,45 @@ void Player::Update() {
 
 	worldTransform_.matWorld_ = MakeAffineMatrix(worldTransform_.scale_, worldTransform_.rotation_, worldTransform_.translation_);
 	worldTransform_.TransferMatrix();
+}
+
+void Player::BehaviorRootInitialize() {
+	// 通常行動初期化（必要に応じてリセット処理を追加）
+}
+
+void Player::BehaviorAttackInitialize() {
+	// カウンター初期化
+	attackParameter_ = 0;
+}
+
+void Player::BehaviorRootUpdate() {
+	InputMove();
+
+	CollisionMapInfo collisionMapInfo;
+	collisionMapInfo.move = velocity_;
+
+	CheckMapCollision(collisionMapInfo);
+	ReflectCollisionResult(collisionMapInfo);
+	HandleCeilingCollision(collisionMapInfo);
+	HandleLandingCollision(collisionMapInfo);
+	HandleWallCollision(collisionMapInfo);
+	UpdateOnGroundState(collisionMapInfo);
+
+	// 攻撃キーを押したら攻撃ビヘイビアをリクエスト
+	if (Input::GetInstance()->PushKey(DIK_SPACE)) {
+		// 攻撃ビヘイビアをリクエスト
+		behaviorRequest_ = Behavior::kAttack;
+	}
+}
+
+void Player::BehaviorAttackUpdate() {
+	// 予備動作
+	attackParameter_++;
+
+	// 規定の時間経過で攻撃終了して通常状態に戻す
+	if (attackParameter_ >= kAttackTime) {
+		behaviorRequest_ = Behavior::kRoot;
+	}
 }
 
 void Player::Draw() {

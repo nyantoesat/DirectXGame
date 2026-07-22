@@ -15,6 +15,8 @@ public:
 private:
 	// 終了フラグ
 	bool finished_ = false;
+	// フェードアウト中フラグ
+	bool isFadingOut_ = false;
 
 	// タイトルフォントモデル
 	KamataEngine::Model* modelTitleFont_ = nullptr;
