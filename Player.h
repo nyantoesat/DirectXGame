@@ -19,6 +19,13 @@ public:
 		kUnknown, // リクエストなし
 	};
 
+	// 攻撃フェーズ（型）
+	enum class AttackPhase {
+		溜め,
+		突進,
+		余韻,
+	};
+
 	void Initialize(KamataEngine::Model* model, uint32_t textureHandle, KamataEngine::Camera* camera, const KamataEngine::Vector3& position);
 	void Update();
 	void Draw();
@@ -100,6 +107,8 @@ private:
 
 	// 攻撃ギミックの経過時間カウンター
 	uint32_t attackParameter_ = 0;
+	// 現在の攻撃フェーズ（変数）
+	AttackPhase attackPhase_ = AttackPhase::溜め;
 
 	MapChipField* mapChipField_ = nullptr;
 
@@ -123,4 +132,12 @@ private:
 
 	// 攻撃時間
 	static inline const uint32_t kAttackTime = 60;
+	// 溜め動作時間
+	static inline const uint32_t kChargeTime = 20;
+	// 突進動作時間
+	static inline const uint32_t kDashTime = 10;
+	// 余韻動作時間
+	static inline const uint32_t kAfterTime = 20;
+	// 攻撃速度
+	static inline const float kAttackVelocity = 0.3f;
 };

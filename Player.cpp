@@ -10,6 +10,17 @@
 
 using namespace KamataEngine;
 
+// イージング関数
+static float EaseOut(float start, float end, float t) {
+	t = 1.0f - (1.0f - t) * (1.0f - t);
+	return start + (end - start) * t;
+}
+
+static float EaseIn(float start, float end, float t) {
+	t = t * t;
+	return start + (end - start) * t;
+}
+
 void Player::Initialize(Model* model, uint32_t textureHandle, Camera* camera, const Vector3& position) {
 	assert(model);
 	assert(camera);
@@ -378,6 +389,10 @@ void Player::BehaviorRootInitialize() {
 void Player::BehaviorAttackInitialize() {
 	// カウンター初期化
 	attackParameter_ = 0;
+	// 攻撃フェーズを溜めから開始
+	attackPhase_ = AttackPhase::溜め;
+	// velocity_をゼロクリア
+	velocity_ = {};
 }
 
 void Player::BehaviorRootUpdate() {
@@ -401,13 +416,68 @@ void Player::BehaviorRootUpdate() {
 }
 
 void Player::BehaviorAttackUpdate() {
-	// 予備動作
-	attackParameter_++;
+	// 攻撃動作用の速度
+	Vector3 velocity{};
 
-	// 規定の時間経過で攻撃終了して通常状態に戻す
-	if (attackParameter_ >= kAttackTime) {
-		behaviorRequest_ = Behavior::kRoot;
+	// 攻撃フェーズごとの更新処理
+	switch (attackPhase_) {
+	// 溜め動作
+	case AttackPhase::溜め:
+	default: {
+		float t = static_cast<float>(attackParameter_) / kChargeTime;
+		worldTransform_.scale_.z = EaseOut(1.0f, 0.3f, t);
+		worldTransform_.scale_.y = EaseOut(1.0f, 1.6f, t);
+		// 前進動作へ移行
+		if (attackParameter_ >= kChargeTime) {
+			attackPhase_ = AttackPhase::突進;
+			attackParameter_ = 0; // カウンターをリセット
+		}
+		break;
 	}
+	// 突進動作
+	case AttackPhase::突進: {
+		float t = static_cast<float>(attackParameter_) / kDashTime;
+		worldTransform_.scale_.z = EaseOut(0.3f, 1.3f, t);
+		worldTransform_.scale_.y = EaseIn(1.6f, 0.7f, t);
+		// 向きに応じて突進速度を設定
+		if (lrDirection_ == LRDirection::kRight) {
+			velocity = {+kAttackVelocity, 0, 0};
+		} else {
+			velocity = {-kAttackVelocity, 0, 0};
+		}
+		// 余韻動作へ移行
+		if (attackParameter_ >= kDashTime) {
+			attackPhase_ = AttackPhase::余韻;
+			attackParameter_ = 0;
+		}
+		break;
+	}
+	// 余韻動作
+	case AttackPhase::余韻: {
+		float t = static_cast<float>(attackParameter_) / kAfterTime;
+		worldTransform_.scale_.z = EaseOut(1.3f, 1.0f, t);
+		worldTransform_.scale_.y = EaseOut(0.7f, 1.0f, t);
+		// 余韻が終わったら通常状態に戻す
+		if (attackParameter_ >= kAfterTime) {
+			behaviorRequest_ = Behavior::kRoot;
+		}
+		break;
+	}
+	}
+
+	// 衝突情報を初期化
+	CollisionMapInfo collisionMapInfo;
+	collisionMapInfo.move = velocity;
+
+	CheckMapCollision(collisionMapInfo);
+	ReflectCollisionResult(collisionMapInfo);
+	HandleCeilingCollision(collisionMapInfo);
+	HandleLandingCollision(collisionMapInfo);
+	HandleWallCollision(collisionMapInfo);
+	UpdateOnGroundState(collisionMapInfo);
+
+	// 予備動作カウンターを進める
+	attackParameter_++;
 }
 
 void Player::Draw() {
