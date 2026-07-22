@@ -1,6 +1,7 @@
 #include "GameScene.h"
 #include "DeathParticles.h"
 #include "Enemy.h"
+#include "Fade.h"
 #include "MapChipField.h"
 #include "MathUtility.h"
 #include "Player.h"
@@ -51,6 +52,12 @@ void GameScene::Initialize() {
 
 	// ゲームプレイフェーズから開始
 	phase_ = Phase::kPlay;
+
+	// フェードの生成と初期化
+	fade_ = new Fade();
+	fade_->Initialize();
+	// シーン開始時にフェードイン
+	fade_->StartFadeIn(1.0f);
 }
 
 void GameScene::GenerateBlocks() {
@@ -103,14 +110,12 @@ GameScene::~GameScene() {
 	delete cameraController_;
 	delete deathParticles_;
 	delete modelDeathParticles_;
+	delete fade_;
 }
 
 void GameScene::Update() {
 
 	debugCamera_->Update();
-
-	// フェーズの切り替え（更新前に判定）
-	ChangePhase();
 
 	// フェーズごとの更新処理
 	switch (phase_) {
@@ -121,6 +126,12 @@ void GameScene::Update() {
 		UpdateDeathPhase();
 		break;
 	}
+
+	// フェーズの切り替え（更新後に判定）
+	ChangePhase();
+
+	// フェードの更新
+	fade_->Update();
 
 #ifdef _DEBUG
 	if (Input::GetInstance()->TriggerKey(DIK_SPACE)) {
@@ -188,11 +199,16 @@ void GameScene::UpdateDeathPhase() {
 	if (deathParticles_) {
 		deathParticles_->Update();
 		if (deathParticles_->IsFinished()) {
-			// 演出終了時にゲームシーンの終了フラグを立てる
-			finished_ = true;
+			// 演出終了時にフェードアウト開始
+			fade_->StartFadeOut(1.0f);
 			delete deathParticles_;
 			deathParticles_ = nullptr;
 		}
+	}
+
+	// フェードアウト完了後にゲームシーン終了フラグを立てる
+	if (!deathParticles_ && phase_ == Phase::kDeath && fade_->IsFinished()) {
+		finished_ = true;
 	}
 }
 
@@ -236,6 +252,9 @@ void GameScene::Draw() {
 		deathParticles_->Draw();
 	}
 	Model::PostDraw();
+
+	// フェードの描画（必ず末尾）
+	fade_->Draw();
 }
 
 void GameScene::CheckAllCollisions() {

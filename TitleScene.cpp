@@ -13,6 +13,7 @@ TitleScene::~TitleScene() {
 
 void TitleScene::Initialize() {
 	finished_ = false;
+	isFadingOut_ = false;
 	floatTimer_ = 0.0f;
 
 	// カメラの初期化
@@ -33,8 +34,8 @@ void TitleScene::Initialize() {
 	// プレイヤーのワールドトランスフォーム初期化
 	worldTransformPlayer_.Initialize();
 	worldTransformPlayer_.translation_ = {0.0f, -1.0f, 0.0f};
-	worldTransformPlayer_.scale_ = {5.0f, 5.0f, 5.0f};
-	worldTransformPlayer_.rotation_.y = 135.0f;
+	worldTransformPlayer_.scale_ = {3.0f, 3.0f, 3.0f};
+	worldTransformPlayer_.rotation_.y = 0.0f;
 
 	// フェードの生成と初期化
 	fade_ = new Fade();
@@ -63,8 +64,14 @@ void TitleScene::Update() {
 	// カメラの更新
 	camera_.UpdateMatrix();
 
-	// スペースキーで終了
-	if (Input::GetInstance()->PushKey(DIK_SPACE)) {
+	// スペースキーが押されたらフェードアウト開始
+	if (Input::GetInstance()->PushKey(DIK_SPACE) && !isFadingOut_) {
+		isFadingOut_ = true;
+		fade_->StartFadeOut(1.0f);
+	}
+
+	// フェードアウト完了後に終了フラグを立てる
+	if (isFadingOut_ && fade_->IsFinished()) {
 		finished_ = true;
 	}
 }
