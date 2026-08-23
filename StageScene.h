@@ -20,6 +20,7 @@ private:
 
 	// ==== player ====
 	KamataEngine::Model* modelPlayer_ = nullptr;
+	uint32_t textureHandlePlayer_ = 0;
 	KamataEngine::WorldTransform worldTransformPlayer_;
 	float playerSpeed_;
 	int playerMaxHp_, playerHp_;
@@ -28,6 +29,7 @@ private:
 
 	// ==== enemy ====
 	KamataEngine::Model* modelEnemy_ = nullptr;
+	uint32_t textureHandleEnemy_ = 0;
 	KamataEngine::WorldTransform worldTransformEnemy_;
 	float enemySpeed_; // Y方向(上下)に往復移動
 	bool isEnemyAlive_;
@@ -94,7 +96,6 @@ inline void StageScene::Initialize() {
 
 	// ==== enemy (画面右側、上下に往復) ====
 	worldTransformEnemy_.Initialize();
-	worldTransformEnemy_.scale_ = {1.5f, 1.5f, 1.5f}; // 一時的にcubeを流用しているので、playerと見分けやすいよう大きめに
 	worldTransformEnemy_.translation_ = {kEnemyX, 0.0f, 0.0f};
 	enemySpeed_ = 0.08f;
 	isEnemyAlive_ = true;
