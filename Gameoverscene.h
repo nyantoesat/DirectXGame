@@ -1,5 +1,6 @@
 #pragma once
 #include "IScene.h"
+#include "MathUtility.h"
 
 // ゲームオーバー(LOSE)シーン
 class GameOverScene : public IScene {
@@ -17,7 +18,7 @@ public:
 inline void GameOverScene::Initialize() {
 	using namespace KamataEngine;
 
-	modelGameOver_ = Model::CreateFromOBJ("./Resources/cube/cube.obj", true);
+	modelGameOver_ = Model::CreateFromOBJ("cube", true);
 
 	worldTransformGameOver_.Initialize();
 	worldTransformGameOver_.translation_ = {0.0f, 1.0f, 8.0f};
@@ -30,7 +31,8 @@ inline void GameOverScene::Update() {
 	using namespace KamataEngine;
 
 	worldTransformGameOver_.rotation_.x += 0.03f;
-	worldTransformGameOver_.TransferMatrix(); // ※コンパイルエラーになる場合はUpdateMatrix()に読み替えてください
+	worldTransformGameOver_.matWorld_ = MakeAffineMatrix(worldTransformGameOver_.scale_, worldTransformGameOver_.rotation_, worldTransformGameOver_.translation_);
+	worldTransformGameOver_.TransferMatrix();
 
 	Input* input = Input::GetInstance();
 	if (input->TriggerKey(DIK_R)) {

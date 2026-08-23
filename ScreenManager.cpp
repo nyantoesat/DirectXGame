@@ -52,6 +52,12 @@ void SceneManager::Update() {
 }
 
 void SceneManager::Draw() {
+	// モデル描画の準備(cmdListのセットアップ)。これが無いとModel::Draw()内で
+	// cmdListがnullptrのままクラッシュします。
+	Model::PreDraw();
+
 	// 描画処理
 	sceneArr_[currentSceneNo_]->Draw();
+
+	Model::PostDraw();
 }

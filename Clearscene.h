@@ -1,5 +1,6 @@
 #pragma once
 #include "IScene.h"
+#include "MathUtility.h"
 
 // クリア(WIN)シーン
 class ClearScene : public IScene {
@@ -17,7 +18,7 @@ public:
 inline void ClearScene::Initialize() {
 	using namespace KamataEngine;
 
-	modelClear_ = Model::CreateFromOBJ("./Resources/sphere/sphere.obj", true);
+	modelClear_ = Model::CreateFromOBJ("cube", true);
 
 	worldTransformClear_.Initialize();
 	worldTransformClear_.translation_ = {0.0f, 1.0f, 8.0f};
@@ -30,7 +31,8 @@ inline void ClearScene::Update() {
 	using namespace KamataEngine;
 
 	worldTransformClear_.rotation_.y += 0.03f;
-	worldTransformClear_.TransferMatrix(); // ※コンパイルエラーになる場合はUpdateMatrix()に読み替えてください
+	worldTransformClear_.matWorld_ = MakeAffineMatrix(worldTransformClear_.scale_, worldTransformClear_.rotation_, worldTransformClear_.translation_);
+	worldTransformClear_.TransferMatrix();
 
 	Input* input = Input::GetInstance();
 	if (input->TriggerKey(DIK_R)) {

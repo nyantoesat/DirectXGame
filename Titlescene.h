@@ -1,5 +1,6 @@
 #pragma once
 #include "IScene.h"
+#include "MathUtility.h"
 
 // タイトルシーン
 class TitleScene : public IScene {
@@ -20,7 +21,7 @@ inline void TitleScene::Initialize() {
 	// タイトルのシンボル代わりにくるくる回る立方体を表示
 	// ※"Resources/cube/cube.obj" が無い場合はお使いのプロジェクトの
 	//   モデルフォルダ名に合わせて変更してください
-	modelTitle_ = Model::CreateFromOBJ("./Resources/cube/", true);
+	modelTitle_ = Model::CreateFromOBJ("cube", true);
 
 	worldTransformTitle_.Initialize();
 	worldTransformTitle_.translation_ = {0.0f, 1.0f, 10.0f};
@@ -34,7 +35,8 @@ inline void TitleScene::Update() {
 
 	// 見た目だけの演出でゆっくり回転させる
 	worldTransformTitle_.rotation_.y += 0.02f;
-	worldTransformTitle_.TransferMatrix(); // ※コンパイルエラーになる場合はUpdateMatrix()に読み替えてください
+	worldTransformTitle_.matWorld_ = MakeAffineMatrix(worldTransformTitle_.scale_, worldTransformTitle_.rotation_, worldTransformTitle_.translation_);
+	worldTransformTitle_.TransferMatrix();
 
 	Input* input = Input::GetInstance();
 	if (input->TriggerKey(DIK_G)) {

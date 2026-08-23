@@ -270,6 +270,7 @@
     <ClInclude Include="Gameoverscene.h" />
     <ClInclude Include="GameScene.h" />
     <ClInclude Include="Iscene.h" />
+    <ClInclude Include="Mathutility.h" />
     <ClInclude Include="SceneManager.h" />
     <ClInclude Include="StageScene.h" />
     <ClInclude Include="Titlescene.h" />

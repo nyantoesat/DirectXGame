@@ -1,17 +1,19 @@
 #pragma once
 #include "IScene.h"
+#include "MathUtility.h"
 #include <cmath>
 #include <cstdlib>
 
-// ゲームシーン(2D版StageSceneの3D移植版)
+// ゲームシーン(2D版StageSceneの3D移植版・左右シューティングレイアウト)
 class StageScene : public IScene {
 private:
 	// ==== フィールド設定 ====
-	static constexpr float kFieldMinX = -8.0f;
-	static constexpr float kFieldMaxX = 8.0f;
-	static constexpr float kFieldMinZ = 0.0f;
-	static constexpr float kFieldMaxZ = 16.0f;
-	static constexpr float kEnemyZ = 15.0f;
+	// プレイヤーは画面左側の範囲内を自由に移動できる。敵は画面右側に固定。
+	static constexpr float kPlayerMinX = -12.0f;
+	static constexpr float kPlayerMaxX = -6.0f;
+	static constexpr float kFieldMinY = -6.0f;
+	static constexpr float kFieldMaxY = 6.0f;
+	static constexpr float kEnemyX = 8.0f; // 敵の固定X座標(右側)
 	static constexpr float kPlayerRadius = 0.7f;
 	static constexpr float kEnemyRadius = 0.8f;
 	static constexpr float kBulletRadius = 0.3f;
@@ -27,7 +29,7 @@ private:
 	// ==== enemy ====
 	KamataEngine::Model* modelEnemy_ = nullptr;
 	KamataEngine::WorldTransform worldTransformEnemy_;
-	float enemySpeed_;
+	float enemySpeed_; // Y方向(上下)に往復移動
 	bool isEnemyAlive_;
 	int enemyMaxHp_, enemyHp_;
 	int damageTimer_;
@@ -51,7 +53,7 @@ private:
 	struct EnemyBullet {
 		KamataEngine::WorldTransform worldTransform;
 		float speed;
-		float dirX, dirZ;
+		float dirX, dirY;
 		bool isActive;
 		BulletType type;
 	};
@@ -71,29 +73,30 @@ inline void StageScene::Initialize() {
 	using namespace KamataEngine;
 
 	// ==== モデル読み込み ====
-	// ※フォルダ名はお使いのプロジェクトの Resources 構成に合わせて変更してください
-	modelPlayer_ = Model::CreateFromOBJ("./Resources/cube/cube.obj", true);
-	modelEnemy_ = Model::CreateFromOBJ("./Resources/sphere/sphere.obj", true);
-	modelBullet_ = Model::CreateFromOBJ("./Resources/cube/cube.obj", true);
-	modelEnemyBullet_ = Model::CreateFromOBJ("./Resources/sphere/sphere.obj", true);
+	modelPlayer_ = Model::CreateFromOBJ("player", true);
+	modelEnemy_ = Model::CreateFromOBJ("enemy", true);
+	modelBullet_ = Model::CreateFromOBJ("cube", true);
+	modelEnemyBullet_ = Model::CreateFromOBJ("cube", true);
 
 	// ==== カメラ ====
-	camera_->translation_ = {0.0f, 9.0f, -12.0f};
-	camera_->rotation_ = {0.5f, 0.0f, 0.0f};
+	// 左右のレイアウト全体が見えるよう、真正面よりに引いて配置
+	camera_->translation_ = {0.0f, 6.0f, -20.0f};
+	camera_->rotation_ = {0.3f, 0.0f, 0.0f};
 
-	// ==== player ====
+	// ==== player (画面左側) ====
 	worldTransformPlayer_.Initialize();
-	worldTransformPlayer_.translation_ = {0.0f, 0.5f, 2.0f};
+	worldTransformPlayer_.translation_ = {kPlayerMinX, 0.0f, 0.0f};
 	playerSpeed_ = 0.2f;
 	playerMaxHp_ = 5;
 	playerHp_ = playerMaxHp_;
 	playerDamageTimer_ = 0;
 	isPlayerAlive_ = true;
 
-	// ==== enemy ====
+	// ==== enemy (画面右側、上下に往復) ====
 	worldTransformEnemy_.Initialize();
-	worldTransformEnemy_.translation_ = {0.0f, 0.5f, kEnemyZ};
-	enemySpeed_ = 0.1f;
+	worldTransformEnemy_.scale_ = {1.5f, 1.5f, 1.5f}; // 一時的にcubeを流用しているので、playerと見分けやすいよう大きめに
+	worldTransformEnemy_.translation_ = {kEnemyX, 0.0f, 0.0f};
+	enemySpeed_ = 0.08f;
 	isEnemyAlive_ = true;
 	enemyMaxHp_ = 30;
 	enemyHp_ = enemyMaxHp_;
@@ -137,65 +140,64 @@ inline void StageScene::Update() {
 		}
 	}
 
-	// ==== プレイヤー移動 (A/D:左右X, W/S:前後Z) ====
+	// ==== プレイヤー移動 (W/S:上下Y、A/D:左右X) ====
 	float dirX = 0.0f;
-	float dirZ = 0.0f;
+	float dirY = 0.0f;
 	if (input->PushKey(DIK_W))
-		dirZ += 1.0f;
+		dirY += 1.0f;
 	if (input->PushKey(DIK_S))
-		dirZ -= 1.0f;
+		dirY -= 1.0f;
 	if (input->PushKey(DIK_A))
 		dirX -= 1.0f;
 	if (input->PushKey(DIK_D))
 		dirX += 1.0f;
 
-	float length = sqrtf(dirX * dirX + dirZ * dirZ);
+	float length = sqrtf(dirX * dirX + dirY * dirY);
 	if (length != 0.0f) {
 		dirX /= length;
-		dirZ /= length;
+		dirY /= length;
 	}
 
 	worldTransformPlayer_.translation_.x += dirX * playerSpeed_;
-	worldTransformPlayer_.translation_.z += dirZ * playerSpeed_;
+	worldTransformPlayer_.translation_.y += dirY * playerSpeed_;
 
-	// プレイヤーは手前側の領域に留める
-	if (worldTransformPlayer_.translation_.x > kFieldMaxX)
-		worldTransformPlayer_.translation_.x = kFieldMaxX;
-	if (worldTransformPlayer_.translation_.x < kFieldMinX)
-		worldTransformPlayer_.translation_.x = kFieldMinX;
-	if (worldTransformPlayer_.translation_.z > kFieldMaxZ * 0.4f)
-		worldTransformPlayer_.translation_.z = kFieldMaxZ * 0.4f;
-	if (worldTransformPlayer_.translation_.z < kFieldMinZ)
-		worldTransformPlayer_.translation_.z = kFieldMinZ;
+	// プレイヤーは画面左側の可動範囲に留める
+	if (worldTransformPlayer_.translation_.x > kPlayerMaxX)
+		worldTransformPlayer_.translation_.x = kPlayerMaxX;
+	if (worldTransformPlayer_.translation_.x < kPlayerMinX)
+		worldTransformPlayer_.translation_.x = kPlayerMinX;
+	if (worldTransformPlayer_.translation_.y > kFieldMaxY)
+		worldTransformPlayer_.translation_.y = kFieldMaxY;
+	if (worldTransformPlayer_.translation_.y < kFieldMinY)
+		worldTransformPlayer_.translation_.y = kFieldMinY;
 
 	// ==== 弾発射 ====
 	if (input->TriggerKey(DIK_SPACE)) {
 		for (int i = 0; i < kMaxBullets; i++) {
 			if (!bullets_[i].isActive) {
 				bullets_[i].worldTransform.translation_ = worldTransformPlayer_.translation_;
-				bullets_[i].worldTransform.translation_.y = 1.0f;
 				bullets_[i].isActive = true;
 				break;
 			}
 		}
 	}
 
-	// ==== 自機弾の更新・当たり判定 ====
+	// ==== 自機弾の更新・当たり判定 (右方向へ飛ぶ) ====
 	for (int i = 0; i < kMaxBullets; i++) {
 		if (!bullets_[i].isActive)
 			continue;
 
-		bullets_[i].worldTransform.translation_.z += bullets_[i].speed;
+		bullets_[i].worldTransform.translation_.x += bullets_[i].speed;
 
-		if (bullets_[i].worldTransform.translation_.z > kFieldMaxZ + 5.0f) {
+		if (bullets_[i].worldTransform.translation_.x > kEnemyX + 5.0f) {
 			bullets_[i].isActive = false;
 			continue;
 		}
 
 		if (isEnemyAlive_) {
 			float dx = bullets_[i].worldTransform.translation_.x - worldTransformEnemy_.translation_.x;
-			float dz = bullets_[i].worldTransform.translation_.z - worldTransformEnemy_.translation_.z;
-			float distanceSq = dx * dx + dz * dz;
+			float dy = bullets_[i].worldTransform.translation_.y - worldTransformEnemy_.translation_.y;
+			float distanceSq = dx * dx + dy * dy;
 			float radiusSum = kEnemyRadius + kBulletRadius;
 
 			if (distanceSq <= radiusSum * radiusSum) {
@@ -210,14 +212,15 @@ inline void StageScene::Update() {
 			}
 		}
 
+		bullets_[i].worldTransform.matWorld_ = MakeAffineMatrix(bullets_[i].worldTransform.scale_, bullets_[i].worldTransform.rotation_, bullets_[i].worldTransform.translation_);
 		bullets_[i].worldTransform.TransferMatrix();
 	}
 
-	// ==== 敵の左右移動 ====
-	worldTransformEnemy_.translation_.x += enemySpeed_;
-	if (worldTransformEnemy_.translation_.x >= kFieldMaxX)
+	// ==== 敵の上下移動 ====
+	worldTransformEnemy_.translation_.y += enemySpeed_;
+	if (worldTransformEnemy_.translation_.y >= kFieldMaxY)
 		enemySpeed_ = -fabsf(enemySpeed_);
-	if (worldTransformEnemy_.translation_.x <= kFieldMinX)
+	if (worldTransformEnemy_.translation_.y <= kFieldMinY)
 		enemySpeed_ = fabsf(enemySpeed_);
 
 	// ==== 敵弾発射 ====
@@ -228,17 +231,16 @@ inline void StageScene::Update() {
 		for (int j = 0; j < kMaxEnemyBullets; j++) {
 			if (!enemyBullets_[j].isActive) {
 				float dx = worldTransformPlayer_.translation_.x - worldTransformEnemy_.translation_.x;
-				float dz = worldTransformPlayer_.translation_.z - worldTransformEnemy_.translation_.z;
-				float mag = sqrtf(dx * dx + dz * dz);
+				float dy = worldTransformPlayer_.translation_.y - worldTransformEnemy_.translation_.y;
+				float mag = sqrtf(dx * dx + dy * dy);
 				if (mag != 0.0f) {
 					dx /= mag;
-					dz /= mag;
+					dy /= mag;
 				}
 
 				enemyBullets_[j].worldTransform.translation_ = worldTransformEnemy_.translation_;
-				enemyBullets_[j].worldTransform.translation_.y = 1.0f;
 				enemyBullets_[j].dirX = dx;
-				enemyBullets_[j].dirZ = dz;
+				enemyBullets_[j].dirY = dy;
 				enemyBullets_[j].isActive = true;
 				enemyBullets_[j].type = (rand() % 2 == 0) ? EnemyBulletFast : EnemyBulletSlow;
 				enemyBullets_[j].speed = (enemyBullets_[j].type == EnemyBulletFast) ? 0.25f : 0.12f;
@@ -247,24 +249,24 @@ inline void StageScene::Update() {
 		}
 	}
 
-	// ==== 敵弾の更新・当たり判定 ====
+	// ==== 敵弾の更新・当たり判定 (プレイヤーへ向かって飛ぶ) ====
 	for (int j = 0; j < kMaxEnemyBullets; j++) {
 		if (!enemyBullets_[j].isActive)
 			continue;
 
 		enemyBullets_[j].worldTransform.translation_.x += enemyBullets_[j].dirX * enemyBullets_[j].speed;
-		enemyBullets_[j].worldTransform.translation_.z += enemyBullets_[j].dirZ * enemyBullets_[j].speed;
+		enemyBullets_[j].worldTransform.translation_.y += enemyBullets_[j].dirY * enemyBullets_[j].speed;
 
-		if (enemyBullets_[j].worldTransform.translation_.z < kFieldMinZ - 5.0f || enemyBullets_[j].worldTransform.translation_.x < kFieldMinX - 5.0f ||
-		    enemyBullets_[j].worldTransform.translation_.x > kFieldMaxX + 5.0f) {
+		if (enemyBullets_[j].worldTransform.translation_.x < kPlayerMinX - 5.0f || enemyBullets_[j].worldTransform.translation_.y < kFieldMinY - 5.0f ||
+		    enemyBullets_[j].worldTransform.translation_.y > kFieldMaxY + 5.0f) {
 			enemyBullets_[j].isActive = false;
 			continue;
 		}
 
 		if (isPlayerAlive_) {
 			float dx = enemyBullets_[j].worldTransform.translation_.x - worldTransformPlayer_.translation_.x;
-			float dz = enemyBullets_[j].worldTransform.translation_.z - worldTransformPlayer_.translation_.z;
-			float distanceSq = dx * dx + dz * dz;
+			float dy = enemyBullets_[j].worldTransform.translation_.y - worldTransformPlayer_.translation_.y;
+			float distanceSq = dx * dx + dy * dy;
 			float radiusSum = kPlayerRadius + kBulletRadius;
 
 			if (distanceSq <= radiusSum * radiusSum) {
@@ -278,6 +280,7 @@ inline void StageScene::Update() {
 			}
 		}
 
+		enemyBullets_[j].worldTransform.matWorld_ = MakeAffineMatrix(enemyBullets_[j].worldTransform.scale_, enemyBullets_[j].worldTransform.rotation_, enemyBullets_[j].worldTransform.translation_);
 		enemyBullets_[j].worldTransform.TransferMatrix();
 	}
 
@@ -290,7 +293,9 @@ inline void StageScene::Update() {
 	if (explosionAnimationTimer_ >= 60)
 		explosionAnimationTimer_ = 0;
 
-	worldTransformPlayer_.TransferMatrix(); // ※コンパイルエラーになる場合はUpdateMatrix()に読み替えてください
+	worldTransformPlayer_.matWorld_ = MakeAffineMatrix(worldTransformPlayer_.scale_, worldTransformPlayer_.rotation_, worldTransformPlayer_.translation_);
+	worldTransformPlayer_.TransferMatrix();
+	worldTransformEnemy_.matWorld_ = MakeAffineMatrix(worldTransformEnemy_.scale_, worldTransformEnemy_.rotation_, worldTransformEnemy_.translation_);
 	worldTransformEnemy_.TransferMatrix();
 
 	// ==== HUD ====
