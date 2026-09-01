@@ -164,12 +164,14 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="CameraController.cpp" />
+    <ClCompile Include="Clearscene.cpp" />
     <ClCompile Include="DeathParticles.cpp" />
     <ClCompile Include="Enemy.cpp" />
     <ClCompile Include="Fade.cpp" />
+    <ClCompile Include="Gameover.cpp" />
     <ClCompile Include="GameScene.cpp" />
+    <ClCompile Include="Howtoplayscene.cpp" />
     <ClCompile Include="main.cpp" />
-    <ClCompile Include="MapChipField.cpp" />
     <ClCompile Include="MathUtility.cpp" />
     <ClCompile Include="Player.cpp" />
     <ClCompile Include="Skydome.cpp" />
@@ -275,11 +277,13 @@
   <ItemGroup>
     <ClInclude Include="AABB.h" />
     <ClInclude Include="CameraController.h" />
+    <ClInclude Include="Clearscene.h" />
     <ClInclude Include="DeathParticles.h" />
     <ClInclude Include="Enemy.h" />
     <ClInclude Include="Fade.h" />
+    <ClInclude Include="GameOverScene.h" />
     <ClInclude Include="GameScene.h" />
-    <ClInclude Include="MapChipField.h" />
+    <ClInclude Include="Howtoplayscene.h" />
     <ClInclude Include="MathUtility.h" />
     <ClInclude Include="Player.h" />
     <ClInclude Include="Skydome.h" />

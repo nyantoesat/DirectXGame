@@ -2,9 +2,9 @@
 #include "Fade.h"
 #include "KamataEngine.h"
 
-class TitleScene {
+class GameOverScene {
 public:
-	~TitleScene();
+	~GameOverScene();
 
 	void Initialize();
 	void Update();
@@ -22,7 +22,7 @@ private:
 	KamataEngine::WorldTransform worldTransformBackground_;
 	uint32_t backgroundTextureHandle_ = 0;
 
-	// ==== タイトルロゴ(3Dテキスト) ====
+	// ==== ゲームオーバーロゴ(3Dテキスト) ====
 	KamataEngine::Model* modelFont_ = nullptr;
 	KamataEngine::WorldTransform worldTransformFont_;
 	float fontBounceTimer_ = 0.0f;
@@ -30,9 +30,9 @@ private:
 	static constexpr float kFontBounceAmplitude = 0.3f;
 	static constexpr float kFontBounceSpeed = 0.06f;
 
-	// ==== 「Gでスタート」等の案内テキスト(3Dテキスト) ====
-	KamataEngine::Model* modelStartFont_ = nullptr;
-	KamataEngine::WorldTransform worldTransformStartFont_;
+	// ==== 「Rで再挑戦」等の案内テキスト(3Dテキスト) ====
+	KamataEngine::Model* modelRestartFont_ = nullptr;
+	KamataEngine::WorldTransform worldTransformRestartFont_;
 
 	bool finished_ = false;
 

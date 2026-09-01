@@ -1,22 +1,31 @@
+#include "ClearScene.h"
+#include "GameOverScene.h"
 #include "GameScene.h"
+#include "HowToPlayScene.h"
 #include "KamataEngine.h"
 #include "TitleScene.h"
 #include <Windows.h>
 
 using namespace KamataEngine;
 
-// シーン（型）
+// シーン(型)
 enum class Scene {
 	kUnknown = 0,
 	kTitle,
+	kHowToPlay,
 	kGame,
+	kClear,
+	kGameOver,
 };
 
 // グローバル変数
-GameScene* gameScene = nullptr;
 TitleScene* titleScene = nullptr;
+HowToPlayScene* howToPlayScene = nullptr;
+GameScene* gameScene = nullptr;
+ClearScene* clearScene = nullptr;
+GameOverScene* gameOverScene = nullptr;
 
-// 現在シーン（型）
+// 現在シーン(型)
 Scene scene = Scene::kUnknown;
 
 // シーン切り替え
@@ -24,24 +33,61 @@ void ChangeScene() {
 	switch (scene) {
 	case Scene::kTitle:
 		if (titleScene->IsFinished()) {
-			// シーン変更
-			scene = Scene::kGame;
-			// 旧シーンの解放
+			scene = Scene::kHowToPlay;
 			delete titleScene;
 			titleScene = nullptr;
-			// 新シーンの生成と初期化
+			howToPlayScene = new HowToPlayScene();
+			howToPlayScene->Initialize();
+		}
+		break;
+
+	case Scene::kHowToPlay:
+		if (howToPlayScene->IsFinished()) {
+			scene = Scene::kGame;
+			delete howToPlayScene;
+			howToPlayScene = nullptr;
 			gameScene = new GameScene();
 			gameScene->Initialize();
 		}
 		break;
+
 	case Scene::kGame:
 		if (gameScene->IsFinished()) {
-			// シーン変更
-			scene = Scene::kTitle;
-			// 旧シーンの解放
+			GameScene::Result result = gameScene->GetResult();
 			delete gameScene;
 			gameScene = nullptr;
-			// 新シーンの生成と初期化
+
+			if (result == GameScene::Result::kClear) {
+				scene = Scene::kClear;
+				clearScene = new ClearScene();
+				clearScene->Initialize();
+			} else if (result == GameScene::Result::kQuitToTitle) {
+				scene = Scene::kTitle;
+				titleScene = new TitleScene();
+				titleScene->Initialize();
+			} else {
+				scene = Scene::kGameOver;
+				gameOverScene = new GameOverScene();
+				gameOverScene->Initialize();
+			}
+		}
+		break;
+
+	case Scene::kClear:
+		if (clearScene->IsFinished()) {
+			scene = Scene::kTitle;
+			delete clearScene;
+			clearScene = nullptr;
+			titleScene = new TitleScene();
+			titleScene->Initialize();
+		}
+		break;
+
+	case Scene::kGameOver:
+		if (gameOverScene->IsFinished()) {
+			scene = Scene::kTitle;
+			delete gameOverScene;
+			gameOverScene = nullptr;
 			titleScene = new TitleScene();
 			titleScene->Initialize();
 		}
@@ -55,8 +101,17 @@ void UpdateScene() {
 	case Scene::kTitle:
 		titleScene->Update();
 		break;
+	case Scene::kHowToPlay:
+		howToPlayScene->Update();
+		break;
 	case Scene::kGame:
 		gameScene->Update();
+		break;
+	case Scene::kClear:
+		clearScene->Update();
+		break;
+	case Scene::kGameOver:
+		gameOverScene->Update();
 		break;
 	}
 }
@@ -67,15 +122,24 @@ void DrawScene() {
 	case Scene::kTitle:
 		titleScene->Draw();
 		break;
+	case Scene::kHowToPlay:
+		howToPlayScene->Draw();
+		break;
 	case Scene::kGame:
 		gameScene->Draw();
+		break;
+	case Scene::kClear:
+		clearScene->Draw();
+		break;
+	case Scene::kGameOver:
+		gameOverScene->Draw();
 		break;
 	}
 }
 
 // Windowsアプリでのエントリーポイント(main関数)
 int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
-	KamataEngine::Initialize(L"GC2B_03_ニャン_トー_セッ_AL2");
+	KamataEngine::Initialize(L"GC2B_03_Skystrike");
 
 	DirectXCommon* dxCommon = DirectXCommon::GetInstance();
 
@@ -105,7 +169,10 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
 
 	// シーン解放
 	delete titleScene;
+	delete howToPlayScene;
 	delete gameScene;
+	delete clearScene;
+	delete gameOverScene;
 
 	KamataEngine::Finalize();
 	return 0;

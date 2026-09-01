@@ -1,80 +1,40 @@
-#include "MapChipField.h"
-#include "KamataEngine.h"
-#include <fstream>
-#include <map>
-#include <sstream>
+#include "MathUtility.h"
+#include <cmath>
 
 using namespace KamataEngine;
 
-namespace {
+Matrix4x4 MakeAffineMatrix(const Vector3& scale, const Vector3& rotate, const Vector3& translate) {
 
-std::map<std::string, MapChipType> mapChipTable = {
-    {"0", MapChipType::kBlank},
-    {"1", MapChipType::kBlock},
-};
+	Matrix4x4 matrix{};
 
-}
+	float cosX = cosf(rotate.x);
+	float sinX = sinf(rotate.x);
 
-void MapChipField::ResetMapChipData() {
-	mapChipData_.data.clear();
-	mapChipData_.data.resize(kNumBlockVertical);
-	for (std::vector<MapChipType>& mapChipDataline : mapChipData_.data) {
-		mapChipDataline.resize(kNumBlockHorizonal);
-	}
-}
+	float cosY = cosf(rotate.y);
+	float sinY = sinf(rotate.y);
 
-void MapChipField::LoadMapChipCsv(const std::string& filePath) {
-	ResetMapChipData();
+	float cosZ = cosf(rotate.z);
+	float sinZ = sinf(rotate.z);
 
-	std::ifstream file;
-	file.open(filePath);
-	assert(file.is_open());
+	matrix.m[0][0] = scale.x * (cosY * cosZ);
+	matrix.m[0][1] = scale.x * (cosY * sinZ);
+	matrix.m[0][2] = scale.x * (-sinY);
+	matrix.m[0][3] = 0.0f;
 
-	std::stringstream mapChipCsv;
-	mapChipCsv << file.rdbuf();
-	file.close();
+	matrix.m[1][0] = scale.y * (sinX * sinY * cosZ - cosX * sinZ);
+	matrix.m[1][1] = scale.y * (sinX * sinY * sinZ + cosX * cosZ);
+	matrix.m[1][2] = scale.y * (sinX * cosY);
+	matrix.m[1][3] = 0.0f;
 
-	for (uint32_t i = 0; i < kNumBlockVertical; ++i) {
-		std::string line;
-		getline(mapChipCsv, line);
-		std::stringstream lineStream(line);
-		for (uint32_t j = 0; j < kNumBlockHorizonal; ++j) {
-			std::string word;
-			std::getline(lineStream, word, ',');
-			if (mapChipTable.contains(word)) {
-				mapChipData_.data[i][j] = mapChipTable[word];
-			}
-		}
-	}
-}
+	matrix.m[2][0] = scale.z * (cosX * sinY * cosZ + sinX * sinZ);
+	matrix.m[2][1] = scale.z * (cosX * sinY * sinZ - sinX * cosZ);
+	matrix.m[2][2] = scale.z * (cosX * cosY);
+	matrix.m[2][3] = 0.0f;
 
-MapChipType MapChipField::GetMapChipTypeByIndex(uint32_t xIndex, uint32_t yIndex) {
-	if (xIndex < 0 || kNumBlockHorizonal - 1 < xIndex) {
-		return MapChipType::kBlank;
-	}
-	if (yIndex < 0 || kNumBlockVertical - 1 < yIndex) {
-		return MapChipType::kBlank;
-	}
-	return mapChipData_.data[yIndex][xIndex];
-}
+	matrix.m[3][0] = translate.x;
+	matrix.m[3][1] = translate.y;
+	matrix.m[3][2] = translate.z;
+	matrix.m[3][3] = 1.0f;
 
-Vector3 MapChipField::GetMapChipPositionByIndex(uint32_t xIndex, uint32_t yIndex) { return Vector3(kBlockWidth * xIndex, kBlockHeight * (kNumBlockVertical - 1 - yIndex), 0); }
-
-MapChipField::IndexSet MapChipField::GetMapChipIndexSetByPosition(const Vector3& position) {
-	IndexSet indexSet = {};
-	indexSet.xIndex = static_cast<uint32_t>((position.x + kBlockWidth / 2.0f) / kBlockWidth);
-	indexSet.yIndex = kNumBlockVertical - 1 - static_cast<uint32_t>((position.y + kBlockHeight / 2.0f) / kBlockHeight);
-	return indexSet;
-}
-
-MapChipField::Rect MapChipField::GetRectByIndex(uint32_t xIndex, uint32_t yIndex) {
-	Vector3 center = GetMapChipPositionByIndex(xIndex, yIndex);
-
-	Rect rect;
-	rect.left = center.x - kBlockWidth / 2.0f;
-	rect.right = center.x + kBlockWidth / 2.0f;
-	rect.bottom = center.y - kBlockHeight / 2.0f;
-	rect.top = center.y + kBlockHeight / 2.0f;
-
-	return rect;
+	return matrix;
 }

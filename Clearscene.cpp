@@ -1,18 +1,18 @@
-#include "TitleScene.h"
+#include "ClearScene.h"
 #include "MathUtility.h"
 #include <cmath>
 
 using namespace KamataEngine;
 
-void TitleScene::Initialize() {
+void ClearScene::Initialize() {
 	camera_.Initialize();
 	camera_.translation_ = {0.0f, 3.0f, 0.0f};
 	camera_.rotation_ = {0.2f, 0.0f, 0.0f};
 	camera_.UpdateMatrix();
 
 	model_ = Model::CreateFromOBJ("player", true);
-	modelFont_ = Model::CreateFromOBJ("titleFont", true);
-	modelStartFont_ = Model::CreateFromOBJ("startFont", true);
+	modelFont_ = Model::CreateFromOBJ("winFont", true);
+	modelRestartFont_ = Model::CreateFromOBJ("restartFont", true);
 
 	// ==== 背景(3Dの板として奥に配置する) ====
 	modelBackground_ = Model::CreateFromOBJ("cube", true);
@@ -25,18 +25,18 @@ void TitleScene::Initialize() {
 	worldTransformBackground_.TransferMatrix();
 
 	worldTransform_.Initialize();
-	worldTransform_.translation_ = {0.0f, 1.0f, 10.0f};
+	worldTransform_.translation_ = {0.0f, 1.0f, 8.0f};
 
 	worldTransformFont_.Initialize();
-	worldTransformFont_.translation_ = {-6.0f, kFontBaseY, 9.5f};
+	worldTransformFont_.translation_ = {-3.3f, kFontBaseY, 7.5f};
 	worldTransformFont_.rotation_.y = 3.14159265f; // 正面を向くよう180度反転
 	worldTransformFont_.scale_ = {1.3f, 1.3f, 1.3f};
 	fontBounceTimer_ = 0.0f;
 
-	worldTransformStartFont_.Initialize();
-	worldTransformStartFont_.translation_ = {-3.3f, -0.5f, 9.5f};
-	worldTransformStartFont_.rotation_.y = 3.14159265f; // 正面を向くよう180度反転
-	worldTransformStartFont_.scale_ = {0.9f, 0.9f, 0.9f};
+	worldTransformRestartFont_.Initialize();
+	worldTransformRestartFont_.translation_ = {-3.3f, -0.5f, 7.5f};
+	worldTransformRestartFont_.rotation_.y = 3.14159265f; // 正面を向くよう180度反転
+	worldTransformRestartFont_.scale_ = {0.9f, 0.9f, 0.9f};
 
 	finished_ = false;
 
@@ -47,12 +47,12 @@ void TitleScene::Initialize() {
 	exitRequested_ = false;
 }
 
-void TitleScene::Update() {
+void ClearScene::Update() {
 	fade_->Update();
 
 	camera_.UpdateMatrix();
 
-	worldTransform_.rotation_.y += 0.02f;
+	worldTransform_.rotation_.y += 0.03f;
 	worldTransform_.matWorld_ = MakeAffineMatrix(worldTransform_.scale_, worldTransform_.rotation_, worldTransform_.translation_);
 	worldTransform_.TransferMatrix();
 
@@ -61,37 +61,37 @@ void TitleScene::Update() {
 	worldTransformFont_.matWorld_ = MakeAffineMatrix(worldTransformFont_.scale_, worldTransformFont_.rotation_, worldTransformFont_.translation_);
 	worldTransformFont_.TransferMatrix();
 
-	worldTransformStartFont_.matWorld_ = MakeAffineMatrix(worldTransformStartFont_.scale_, worldTransformStartFont_.rotation_, worldTransformStartFont_.translation_);
-	worldTransformStartFont_.TransferMatrix();
+	worldTransformRestartFont_.matWorld_ = MakeAffineMatrix(worldTransformRestartFont_.scale_, worldTransformRestartFont_.rotation_, worldTransformRestartFont_.translation_);
+	worldTransformRestartFont_.TransferMatrix();
 
 	Input* input = Input::GetInstance();
-	if (!exitRequested_ && input->TriggerKey(DIK_G)) {
+	if (!exitRequested_ && input->TriggerKey(DIK_R)) {
 		exitRequested_ = true;
 		fade_->StartFadeOut(kFadeDuration);
 	}
 
 	// フェードアウトが完了してからシーンを終了する
 	if (exitRequested_ && fade_->IsFinished()) {
-		finished_ = true; // シーン変更 -> main.cppのChangeScene()がGameSceneへ切り替える
+		finished_ = true; // シーン変更 -> main.cppのChangeScene()がTitleSceneへ切り替える
 	}
 }
 
-void TitleScene::Draw() {
+void ClearScene::Draw() {
 	Model::PreDraw();
 	modelBackground_->Draw(worldTransformBackground_, camera_, backgroundTextureHandle_);
 	model_->Draw(worldTransform_, camera_);
 	modelFont_->Draw(worldTransformFont_, camera_);
-	modelStartFont_->Draw(worldTransformStartFont_, camera_);
+	modelRestartFont_->Draw(worldTransformRestartFont_, camera_);
 	Model::PostDraw();
 
 	// フェードの描画(必ず末尾)
 	fade_->Draw();
 }
 
-TitleScene::~TitleScene() {
+ClearScene::~ClearScene() {
 	delete model_;
 	delete modelFont_;
-	delete modelStartFont_;
+	delete modelRestartFont_;
 	delete modelBackground_;
 	delete fade_;
 }

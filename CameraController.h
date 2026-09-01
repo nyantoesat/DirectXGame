@@ -1,43 +1,30 @@
 #pragma once
 #include "KamataEngine.h"
 
-class Player;
-
-struct Rect {
-	float left = 0.0f;
-	float right = 1.0f;
-	float bottom = 0.0f;
-	float top = 1.0f;
-};
-
+// カメラワークを管理するクラス(縦スクロールシューティング方式)
+// 急な見下ろし角度でトラックに沿って自動的に前進し、
+// プレイヤーの操作にわずかに追従して視点をずらす
 class CameraController {
 public:
 	void Initialize();
-
-	void Update();
-
-	void SetTarget(Player* target);
-
-	void Reset();
-
-	void SetMovableArea(Rect area) { movableArea_ = area; }
+	// trackDistance: 現在の走行距離(ワールドZ座標のベースになる)
+	// playerLocalX/playerLocalDepth: プレイヤーの画面内位置(カメラが実際に追従する)
+	// isDashing: ダッシュ中かどうか(疾走感の演出に使用)
+	void Update(float trackDistance, float playerLocalX, float playerLocalDepth, bool isDashing);
 
 	KamataEngine::Camera& GetCamera() { return camera_; }
 
 private:
 	KamataEngine::Camera camera_;
 
-	Player* target_ = nullptr;
+	static constexpr float kHeight = 14.0f;           // かなり高い位置から見下ろす
+	static constexpr float kPitch = 1.0f;             // 急な見下ろし角度(ラジアン)
+	static constexpr float kBehindOffset = -6.0f;     // 自機より少し手前に位置する
+	static constexpr float kParallaxX = 0.6f;         // プレイヤーの左右移動にどれだけ追従するか
+	static constexpr float kParallaxDepth = 0.5f;     // プレイヤーの前後移動にどれだけ追従するか
+	static constexpr float kDashPitchBoost = 0.05f;   // ダッシュ中はわずかに前のめりにして疾走感を演出
+	static constexpr float kPositionLerpRate = 0.25f; // 追従の速さ(はっきり反応するように)
 
-	KamataEngine::Vector3 targetOffset_ = {0, 0, -10.0f};
-
-	KamataEngine::Vector3 goalCoordinates_ = {};
-
-	Rect movableArea_ = {0.0f, 100.0f, 0.0f, 100.0f};
-
-	static inline const float kInterpolationRate = 0.1f;
-
-	static inline const float kVelocityBias = 15.0f;
-
-	static inline const Rect kMargin = {-3.0f, 3.0f, -2.0f, 2.0f};
+	float goalX_ = 0.0f;
+	float goalZ_ = kBehindOffset;
 };

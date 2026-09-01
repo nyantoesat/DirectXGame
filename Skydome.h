@@ -1,17 +1,17 @@
 #pragma once
 #include "KamataEngine.h"
 
+// 天球(スカイドーム)クラス
 class Skydome {
 public:
-	void Initialize();
+	void Initialize(KamataEngine::Model* model);
 	void Update();
-	void Draw(KamataEngine::Camera& camera);
-	//~Skydome();
+	void Draw(const KamataEngine::Camera& camera);
 
 private:
+	KamataEngine::Model* model_ = nullptr;
 	KamataEngine::WorldTransform worldTransform_;
-	KamataEngine::Model* modelSkydome_ = nullptr;
-	uint32_t skytextureHandle_ = 0;
-	
-	
+
+	// シーン全体を包み込むよう大きめのスケールにする
+	static constexpr float kScale = 500.0f;
 };

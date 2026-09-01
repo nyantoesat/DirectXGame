@@ -1,23 +1,19 @@
 #include "Skydome.h"
 #include "MathUtility.h"
 
-using namespace KamataEngine;	
+using namespace KamataEngine;
 
-void Skydome::Initialize() { 
-	skytextureHandle_ = TextureManager::Load("./Resources/SkyDome/sky_sphere.png");
-	
-	modelSkydome_ = Model::CreateFromOBJ("skydome", true);
-	
+void Skydome::Initialize(Model* model) {
+	model_ = model;
+
 	worldTransform_.Initialize();
-
-	worldTransform_.scale_ = {-100, 100, 100};
+	worldTransform_.scale_ = {kScale, kScale, kScale};
+	worldTransform_.translation_ = {0.0f, 0.0f, 0.0f};
 }
 
-void Skydome::Update() { 
+void Skydome::Update() {
+	worldTransform_.matWorld_ = MakeAffineMatrix(worldTransform_.scale_, worldTransform_.rotation_, worldTransform_.translation_);
 	worldTransform_.TransferMatrix();
-	 }
+}
 
-void Skydome::Draw(Camera& camera) { 
-
-	modelSkydome_->Draw(worldTransform_, camera, skytextureHandle_);
-}	
+void Skydome::Draw(const Camera& camera) { model_->Draw(worldTransform_, camera); }
